@@ -67,7 +67,7 @@ function BasicSearch(props: IProps) {
         autoComplete="off"
       >
         {
-          list.map(item => (
+          list?.map(item => (
             <Form.Item
               key={`${item.name}`}
               label={item.label}
@@ -89,6 +89,7 @@ function BasicSearch(props: IProps) {
             <Button
               type="primary"
               htmlType="submit"
+              className='!mb-5px'
               loading={isLoading}
               icon={<SearchOutlined />}
             >
@@ -102,6 +103,7 @@ function BasicSearch(props: IProps) {
           <Form.Item>
             <Button
               type="primary"
+              className='!mb-5px'
               icon={<PlusOutlined />}
               onClick={onCreate}
           >

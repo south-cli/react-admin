@@ -16,10 +16,19 @@ import zhCN from 'antd/es/locale/zh_CN'
 import 'antd/dist/antd.css'
 import '@/assets/css/antd.less'
 
+import { AliveScope } from 'react-activation'
+
+// 时间设为中文
+import moment from 'moment'
+import 'moment/dist/locale/zh-cn'
+moment.locale('zh-cn')
+
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <ConfigProvider locale={zhCN}>
     <Provider store={store}>
-      <Router />
+      <AliveScope>
+        <Router />
+      </AliveScope>
     </Provider>
   </ConfigProvider>
 )

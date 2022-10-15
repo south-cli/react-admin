@@ -5,13 +5,16 @@ import type {
   TreeSelectProps,
   RadioProps,
   DatePickerProps,
+  TimePickerProps,
   UploadProps,
   RateProps,
   CheckboxProps,
-  SliderSingleProps
+  SliderSingleProps,
+  TimeRangePickerProps
 } from "antd"
 import type { Key, ReactNode } from "react"
 import type { IAllDataType } from './public'
+import type { RangePickerProps } from 'antd/lib/date-picker'
 import type { DefaultOptionType } from 'antd/lib/select'
 import type { RuleObject } from 'antd/lib/form'
 import type { IBusinessComponents } from "@/components/Business"
@@ -37,7 +40,7 @@ type ICheckboxComponents = 'Checkbox' | 'CheckboxGroup'
 type IRadioComponents = 'RadioGroup' | 'Switch'
 
 // 时间组件
-type ITimeComponents = 'DatePicker' | 'RangePicker'
+type ITimeComponents = 'DatePicker' | 'RangePicker' | 'TimePicker' | 'TimeRangePicker'
 
 // 上传组件
 type IUploadComponents = 'Upload'
@@ -69,6 +72,8 @@ export type IComponentType = IDefaultDataComponents |
                           ISliderComponents |
                           IEditorComponents |
                           IPasswordStrength |
+                          TimeRangePickerProps |
+                          RangePickerProps |
                           IBusinessComponents
 
 export interface IApiResult extends Omit<DefaultOptionType, 'value'> {
@@ -100,6 +105,7 @@ export type IComponentProps = InputProps |
                               CheckboxProps |
                               RadioProps |
                               DatePickerProps |
+                              TimePickerProps |
                               UploadProps |
                               RateProps |
                               SliderSingleProps |

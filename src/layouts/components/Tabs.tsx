@@ -1,13 +1,13 @@
-import type { TabsProps } from 'antd'
+import { message, TabsProps } from 'antd'
 import type { AppDispatch, RootState } from '@/stores'
-import { useEffect } from 'react'
-import { getMenuByKey } from '@/menus/utils/helper'
+import { useEffect, useState } from 'react'
+import { getMenuByKey, getOpenMenuByRouter } from '@/menus/utils/helper'
 import { defaultMenus } from '@/menus'
 import { Tabs, Dropdown } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { setActiveKey, addTabs, closeTabs } from '@/stores/tabs'
+import { setActiveKey, addTabs, closeTabs, setNav } from '@/stores/tabs'
+import { useAliveController } from 'react-activation'
 import { useDispatch, useSelector } from 'react-redux'
-import { firstCapitalize } from '@/utils/helper'
 import { setOpenKey } from '@/stores/menu'
 import styles from '../index.module.less'
 import TabRefresh from './TabRefresh'
@@ -19,13 +19,15 @@ function LayoutTabs() {
   const navigate = useNavigate()
   const location = useLocation()
   const dispatch: AppDispatch = useDispatch()
+  const { refresh } = useAliveController()
+  const [isRefresh, setRefresh] = useState(false) // 重新加载
+  const [time, setTime] = useState<null | NodeJS.Timeout>(null)
+
   const tabs = useSelector((state: RootState) => state.tabs.tabs)
   const activeKey = useSelector((state: RootState) => state.tabs.activeKey)
   const permissions = useSelector((state: RootState) => state.user.permissions)
   // 是否窗口最大化
   const isMaximize = useSelector((state: RootState) => state.tabs.isMaximize)
-  // 菜单展开值
-  const openKey = useSelector((state: RootState) => state.menu.openKey)
 
   useEffect(() => {
     // 当值为空时匹配路由
@@ -38,6 +40,7 @@ function LayoutTabs() {
       )
       if (newItems.key) {
         dispatch(setActiveKey(newItems.key))
+        dispatch(setNav(newItems.nav))
         dispatch(addTabs(newItems))
       }
     }
@@ -49,14 +52,8 @@ function LayoutTabs() {
       navigate(activeKey)
 
       // 处理菜单展开
-      const arr = activeKey.split('/')
-      if (arr.length > 1) {
-        // 取第一个单词大写为新展开菜单key
-        const newOpenKey = firstCapitalize(arr[1])
-        if (newOpenKey !== openKey?.[0]) {
-          dispatch(setOpenKey([newOpenKey]))
-        }
-      }
+      const openKey = getOpenMenuByRouter(activeKey)
+      dispatch(setOpenKey(openKey))
     }
   }, [activeKey])
   
@@ -87,20 +84,73 @@ function LayoutTabs() {
     }
   }
 
+  /** 
+   * 点击重新加载
+   */
+   const onClickRefresh = (key = activeKey) => {
+    // 如果key不是字符串格式则退出
+    if (typeof key !== 'string') return
+
+    // 定时器没有执行时运行
+    if (!time) {
+      setRefresh(true)
+      navigate('/loading')
+
+      setTime(
+        setTimeout(() => {
+          
+          // 当选中的key和激活的key不同则更改
+          if (key !== activeKey) {
+            dispatch(setActiveKey(key))
+          }
+
+          setRefresh(false)
+          navigate(key)
+          refresh(key)
+          message.success({
+            content: '刷新成功',
+            key: 'refresh'
+          })
+          setTime(null)
+        }, 1000)
+      )
+    }
+  }
+
+  // 渲染重新加载
+  const RefreshRender = (
+    <TabRefresh
+      isRefresh={isRefresh}
+      onClick={onClickRefresh}
+    />
+  )
+
+  // 渲染标签操作
+  const TabOptionsRender = (
+    <TabOptions
+      handleRefresh={onClickRefresh}
+    />
+  )
+
   // 标签栏功能
   const tabOptions = [
-    { element: <TabRefresh /> },
-    { element: <TabOptions /> },
+    { element: RefreshRender },
+    { element: TabOptionsRender },
     { element: <TabMaximize /> }
   ]
 
-  // 二次封装标签
+  /** 二次封装标签 */
   const renderTabBar: TabsProps['renderTabBar'] = (tabBarProps, DefaultTabBar) => (
     <DefaultTabBar {...tabBarProps}>
       { node => (
         <Dropdown
           key={node.key}
-          overlay={<DropdownMenu activeKey={node.key as string} />}
+          overlay={(
+            <DropdownMenu
+              activeKey={node.key as string}
+              handleRefresh={onClickRefresh}
+            />
+          )}
           trigger={['contextMenu']}
         >
           <div className='mr-3px'>
@@ -137,7 +187,7 @@ function LayoutTabs() {
       
       <div className='flex'>
         {
-          tabOptions.map((item, index) => (
+          tabOptions?.map((item, index) => (
             <div
               key={index}
               className={`

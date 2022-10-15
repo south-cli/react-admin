@@ -1,5 +1,5 @@
 import type { MenuProps } from 'antd'
-import type { ISideMenu } from '#/global'
+import type { ISideMenu } from '#/public'
 import type { AppDispatch } from '@/stores'
 import { useEffect, useState } from 'react'
 import { Menu } from 'antd'
@@ -7,10 +7,9 @@ import { RootState } from '@/stores'
 import { useDispatch, useSelector } from 'react-redux'
 import { defaultMenus } from '@/menus'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { firstCapitalize } from '@/utils/helper'
 import { setOpenKey } from '@/stores/menu'
-import { filterMenus, getMenuByKey } from '@/menus/utils/helper'
-import { addTabs, setActiveKey } from '@/stores/tabs'
+import { filterMenus, getMenuByKey, getOpenMenuByRouter, splitPath } from '@/menus/utils/helper'
+import { addTabs, setNav, setActiveKey } from '@/stores/tabs'
 import styles from '../index.module.less'
 import Logo from '@/assets/images/logo.svg'
 
@@ -29,15 +28,8 @@ function LayoutMenu() {
   // 处理默认展开
   useEffect(() => {
     const { pathname } = location
-    const arr = pathname.split('/')
-    // 当路由长度大于2时说明不是默认数据总览
-    if (arr.length > 2) {
-      // 取第一个单词大写为新展开菜单key
-      const newOpenKey = firstCapitalize(arr[1])
-      if (newOpenKey !== openKey?.[0]) {
-        dispatch(setOpenKey([newOpenKey]))
-      }
-    }
+    const newOpenKey = getOpenMenuByRouter(pathname)
+    dispatch(setOpenKey(newOpenKey))
   }, [])
 
   // 过滤没权限菜单
@@ -56,7 +48,26 @@ function LayoutMenu() {
     navigate(e.key)
     const newTab = getMenuByKey(menus, permissions, e.key)
     dispatch(setActiveKey(newTab.key))
+    dispatch(setNav(newTab.nav))
     dispatch(addTabs(newTab))
+  }
+
+  /**
+   * 对比当前展开目录是否是同一层级
+   * @param arr - 当前展开目录
+   * @param lastArr - 最后展开的目录
+   */
+  const diffOpenMenu = (arr: string[], lastArr: string[]) => {
+    let result = true
+
+    for (let j = 0; j < arr.length; j++) {
+      if (arr[j] !== lastArr[j]) {
+        result = false
+        break
+      }
+    }
+
+    return result
   }
 
   /**
@@ -64,28 +75,63 @@ function LayoutMenu() {
    * @param openKey - 展开键值
    */
   const onOpenChange = (openKey: string[]) => {
-    const newOpenKey = openKey.length ? [openKey[openKey.length - 1]] : []
+    const newOpenKey: string[] = []
+    let last = '' // 最后一个目录结构
+
+    // 当目录有展开值
+    if (openKey.length > 0) {
+      last = openKey[openKey.length - 1]
+      const lastArr: string[] = splitPath(last)
+      newOpenKey.push(last)
+
+      // 对比当前展开目录是否是同一层级
+      for (let i = openKey.length - 2; i >= 0; i--) {
+        const arr = splitPath(openKey[i])
+        const hasOpenKey = diffOpenMenu(arr, lastArr)
+        if (hasOpenKey) newOpenKey.unshift(openKey[i])
+      }
+    }
+
     dispatch(setOpenKey(newOpenKey))
+  }
+
+  /** 点击logo */
+  const onClickLogo = () => {
+    navigate('/dashboard')
+    const newItems = getMenuByKey(
+      defaultMenus,
+      permissions,
+      '/dashboard'
+    )
+    if (newItems.key) {
+      dispatch(setActiveKey(newItems.key))
+      dispatch(setNav([]))
+      dispatch(addTabs(newItems))
+    }
   }
 
   return (
     <div 
       className={`
         transition-all
+        overflow-auto
         ${styles.menu}
         ${isCollapsed ? styles.menuClose : ''}
         ${isMaximize ? styles.menuNone : ''}
       `}
     >
-      <div className={`
-        text-white
-        flex
-        content-center
-        px-5
-        py-2
-        cursor-pointer
-        ${isCollapsed ? 'justify-center' : ''}
-      `}>
+      <div
+        className={`
+          text-white
+          flex
+          content-center
+          px-5
+          py-2
+          cursor-pointer
+          ${isCollapsed ? 'justify-center' : ''}
+        `}
+        onClick={onClickLogo}
+      >
         <img
           src={Logo}
           width={30}

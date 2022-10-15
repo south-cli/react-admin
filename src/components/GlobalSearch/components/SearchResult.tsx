@@ -1,6 +1,13 @@
-import type { ISideMenu } from '#/global'
+import type { ISideMenu } from '#/public'
+import type { AppDispatch, RootState } from '@/stores'
+import { Fragment } from 'react'
 import { Icon } from '@iconify/react'
 import { useNavigate } from 'react-router-dom'
+import { setOpenKey } from '@/stores/menu'
+import { useDispatch, useSelector } from 'react-redux'
+import { getMenuByKey, getOpenMenuByRouter } from '@/menus/utils/helper'
+import { addTabs, setActiveKey } from '@/stores/tabs'
+import { defaultMenus } from '@/menus'
 
 interface IProps {
   list: ISideMenu[]; // 列表
@@ -12,6 +19,8 @@ interface IProps {
 function SearchResult(props: IProps) {
   const { list, active, onCancel, changActive } = props
   const navigate = useNavigate()
+  const dispatch: AppDispatch = useDispatch()
+  const permissions = useSelector((state: RootState) => state.user.permissions)
 
   /**
    * 点击菜单跳转页面
@@ -19,6 +28,14 @@ function SearchResult(props: IProps) {
    */
   const onclick = (key: string) => {
     navigate(key)
+    // 添加标签
+    const newTab = getMenuByKey(defaultMenus, permissions, key)
+    dispatch(addTabs(newTab))
+    dispatch(setActiveKey(key))
+    // 处理菜单展开
+    const openKey = getOpenMenuByRouter(key)
+    dispatch(setOpenKey(openKey))
+    // 关闭
     onCancel()
   }
 
@@ -49,7 +66,7 @@ function SearchResult(props: IProps) {
         list?.length > 0 &&
         <div className="mt-5">
           {
-            list.map(item => (
+            list?.map(item => (
             <div
               key={item.key}
               className={`
@@ -71,7 +88,22 @@ function SearchResult(props: IProps) {
             >
             <div className="flex items-center">
               <Icon className="text-lg mr-1" icon="gg:menu-boxed" />
-              <span>{ item.label }</span>
+                {
+                  item.nav && item.nav?.length > 0 &&
+                  item.nav.map((item, index) => (
+                    <Fragment key={item}>
+                      {
+                        index > 0 &&
+                        <span className='mx-5px'>&gt;</span>
+                      }
+                      <span>{ item }</span>
+                    </Fragment>
+                  ))
+                }
+                {
+                  !item.nav &&
+                  <span>{ item.label }</span>
+                }
               </div>
               <Icon className="icon text-20px p-2px mr-5px" icon="ant-design:enter-outlined" />
             </div>

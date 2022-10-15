@@ -20,10 +20,12 @@ enum ITabEnums {
 
 interface IProps {
   activeKey: string;
+  onOpenChange?: (open: boolean) => void;
+  handleRefresh: (activeKey: string) => void;
 }
 
 function DropdownMenu(props: IProps) {
-  const { activeKey } = props
+  const { activeKey, onOpenChange, handleRefresh } = props
   const dispatch: AppDispatch = useDispatch()
   const tabs = useSelector((state: RootState) => state.tabs.tabs)
   const index = tabs.findIndex(item => item.key === activeKey)
@@ -63,9 +65,13 @@ function DropdownMenu(props: IProps) {
 
   /** 点击菜单 */
   const onClick: MenuProps['onClick'] = e => {
+    // 复原箭头
+    onOpenChange?.(false)
+
     switch (e.key) {
       // 重新加载
       case ITabEnums.REFRESH:
+        handleRefresh(activeKey)
         break
 
       // 关闭当前
