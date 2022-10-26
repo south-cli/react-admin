@@ -14,7 +14,7 @@ interface IProps extends Omit<TableProps<object>, 'bordered'> {
 }
 
 function BasicTable(props: IProps) {
-  const { isZebra, isBordered, isVirtual } = props
+  const { loading, isZebra, isBordered, isVirtual } = props
   const [columns, setColumns] = useState(props.columns as ColumnsType<object>)
 
   // 表格高度
@@ -80,6 +80,7 @@ function BasicTable(props: IProps) {
         size='small'
         rowKey='id'
         pagination={false}
+        loading={loading}
         {...props}
         bordered={isBordered !== false}
         scroll={{ ...props.scroll, y: tableHeight }}
