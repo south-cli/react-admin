@@ -4,7 +4,7 @@
 - 获取项目代码
 
 ```bash
-git clone git@github.com:southliu/react-admin.git
+git clone git@github.com:south-cli/react-admin.git
 ```
 
 - 选择目录
