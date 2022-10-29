@@ -1,11 +1,14 @@
-import type { ReactNode } from 'react'
+import { ReactNode, Ref, useImperativeHandle } from 'react'
 import type { IFormData, IFormList } from '#/form'
 import type { ColProps } from 'antd'
+import type { IFormFn } from '../Form/BasicForm'
+import { memo } from 'react'
 import { Button, FormProps } from 'antd'
 import { Form } from 'antd'
 import { SearchOutlined, PlusOutlined } from '@ant-design/icons'
 import { getComponent } from '../Form/utils/componentMap'
 import { handleValuePropName } from '../Form/utils/helper'
+import { filterMoment } from '../Dates/utils/helper'
 
 interface IProps {
   list: IFormList[];
@@ -16,6 +19,7 @@ interface IProps {
   children?: ReactNode;
   labelCol?: Partial<ColProps>;
   wrapperCol?: Partial<ColProps>;
+  formRef?: Ref<IFormFn>;
   onCreate?: () => void;
   handleFinish: FormProps['onFinish'];
 }
@@ -24,6 +28,7 @@ function BasicSearch(props: IProps) {
   const {
     list,
     data,
+    formRef,
     isLoading,
     isSearch,
     isCreate,
@@ -32,6 +37,33 @@ function BasicSearch(props: IProps) {
     wrapperCol,
     handleFinish
   } = props
+  const [form] = Form.useForm()
+
+  // 抛出外部方法
+  useImperativeHandle(
+    formRef,
+    () => ({
+      /**
+       * 获取表单值
+       * @param key - 表单唯一值
+       */
+      getFieldValue: (key: string) => {
+        return form.getFieldValue(key)
+      },
+      /** 获取表单全部值 */
+      getFieldsValue: () => {
+        return form.getFieldsValue()
+      },
+      /** 重置表单 */
+      handleReset: () => {
+        form.resetFields()
+      },
+      /** 提交表单  */
+      handleSubmit: () => {
+        form.submit()
+      }
+    } as IFormFn)
+  )
 
   /** 点击新增 */
   const onCreate = () => {
@@ -43,7 +75,11 @@ function BasicSearch(props: IProps) {
    * @param values - 表单值
    */
   const onFinish: FormProps['onFinish'] = values => {
-    handleFinish?.(values)
+    if (handleFinish) {
+      // 将Moment类型转为字符串
+      const params = filterMoment(values, list)
+      handleFinish?.(params)
+    }
   }
   
   /**
@@ -55,10 +91,11 @@ function BasicSearch(props: IProps) {
   }
 
   return (
-    <div id="searches" className="bg-white pt-4 pb-1 px-5">
+    <div id="searches" className="bg-white py-3">
       <Form
         name="basic"
         layout="inline"
+        form={form}
         labelCol={labelCol ? labelCol : { span: 8 }}
         wrapperCol={wrapperCol ? wrapperCol : { span: 16 }}
         initialValues={data}
@@ -118,4 +155,4 @@ function BasicSearch(props: IProps) {
   )
 }
 
-export default BasicSearch
+export default memo(BasicSearch)

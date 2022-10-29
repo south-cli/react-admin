@@ -1,10 +1,13 @@
+## 项目演示
+[演示地址](https://southliu.github.io/)
+
 
 ## 安装使用
 
 - 获取项目代码
 
 ```bash
-git clone git@github.com:south-cli/react-admin.git
+git clone https://github.com/south-cli/react-admin.git
 ```
 
 - 选择目录
