@@ -69,18 +69,25 @@ export function splitPath(path: string): string[] {
  * @param currentPath - 当前路径
  * @param result - 返回值
  */
+
 interface IMenuPath {
   label: string;
   path: string[];
 }
-export function searchMenuValue(
+interface ISearchMenuProps {
   menus: ISideMenu[] | undefined,
   permissions: string[],
   value: string,
-  currentPath: IMenuPath[] = [],
-  result: ISideMenu[] = []
-): ISideMenu[] {
+  currentPath?: IMenuPath[],
+  result?: ISideMenu[]
+}
+
+export function searchMenuValue(data: ISearchMenuProps): ISideMenu[] {
+  const { menus, permissions, value } = data
+  let { currentPath, result } = data
   if (!menus?.length || !value) return []
+  if (!currentPath) currentPath = []
+  if (!result) result = []
 
   for (let i = 0; i < menus.length; i++) {
     // 如果存在子数组则递归
@@ -91,13 +98,14 @@ export function searchMenuValue(
       })
 
       // 递归子数组，返回结果
-      const childResult = searchMenuValue(
-        menus[i].children,
+      const childrenData = {
+        menus: menus[i].children,
         permissions,
         value,
         currentPath,
         result
-      )
+      }
+      const childResult = searchMenuValue(childrenData)
 
       // 当子数组返回值有值时则合并数组
       if (childResult.length) {
@@ -137,33 +145,44 @@ interface IGetMenuByKeyResult {
   key: string;
   nav: string[];
 }
-export function getMenuByKey(
+interface IGetMenuByKeyProps {
   menus: ISideMenu[] | undefined,
   permissions: string[],
   key: string,
-  fatherNav: string[] = [],
-  result: IGetMenuByKeyResult = { label: '', key: '', nav: [] }
-) {
+  fatherNav?: string[],
+  result?: IGetMenuByKeyResult
+}
+
+export function getMenuByKey(data: IGetMenuByKeyProps): IGetMenuByKeyResult | undefined {
+  const { menus, permissions, key } = data
+  let { fatherNav, result } = data
   if (!menus?.length) return result
+  if (!fatherNav) fatherNav = []
+  if (!result?.key) result = {
+    key: '',
+    label: '',
+    nav: []
+  }
 
   for (let i = 0; i < menus.length; i++) {
-    if (!key || result.key) return result
+    if (!key || (result as IGetMenuByKeyResult).key) return result
 
     // 过滤子数据中值
     if (hasChildren(menus[i])) {
       fatherNav.push(menus[i].label)
 
       // 递归子数组，返回结果
-      const childResult = getMenuByKey(
-        menus[i].children,
+      const childProps = {
+        menus: menus[i].children,
         permissions,
         key,
         fatherNav,
         result
-      )
+      }
+      const childResult = getMenuByKey(childProps)
 
       // 当子数组返回值
-      if (childResult.key) {
+      if (childResult?.key) {
         result = childResult
       } else {
         // 下次递归前删除面包屑前一步错误路径
@@ -209,9 +228,46 @@ export function filterMenus(
     if (
       hasPermission(menus[i], permissions) ||
       hasChildren(menus[i])
-    ) {
-      result.push(menus[i])
+    ) result.push(menus[i])
+  }
+
+  return result
+}
+
+/**
+ * 获取第一个有效权限路由
+ * @param menus - 菜单
+ * @param permissions - 权限
+ */
+export function getFirstMenu(
+ menus: ISideMenu[],
+ permissions: string[],
+ result = ''
+): string {
+  // 有结构时直接返回
+  if (result) return result
+
+  for (let i = 0; i < menus.length; i++) {
+    // 处理子数组
+    if (hasChildren(menus[i]) && !result) {
+      const childResult = getFirstMenu(
+        menus[i].children as ISideMenu[],
+        permissions,
+        result
+      )
+
+      // 有结果则赋值
+      if (childResult) {
+        result = childResult
+        return result
+      }
     }
+
+    // 有权限且没有有子数据
+    if (
+      hasPermission(menus[i], permissions) &&
+      !hasChildren(menus[i])
+    ) result = menus[i].key
   }
 
   return result
@@ -231,5 +287,5 @@ function hasPermission(route: ISideMenu, permissions: string[]): boolean {
  * @param route - 路由
  */
 function hasChildren(route: ISideMenu): boolean {
-  return Boolean(route?.children?.length)
+  return Boolean(route.children?.length)
 }

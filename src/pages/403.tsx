@@ -1,6 +1,6 @@
 import type { AppDispatch, RootState } from '@/stores'
 import { defaultMenus } from '@/menus'
-import { getMenuByKey } from '@/menus/utils/helper'
+import { getFirstMenu, getMenuByKey } from '@/menus/utils/helper'
 import { addTabs, setNav, setActiveKey } from '@/stores/tabs'
 import { Button } from 'antd'
 import { useNavigate } from 'react-router-dom'
@@ -14,13 +14,11 @@ function Forbidden() {
 
   /** 跳转首页 */
   const goIndex = () => {
-    navigate('/dashboard')
-    const newItems = getMenuByKey(
-      defaultMenus,
-      permissions,
-      '/dashboard'
-    )
-    if (newItems.key) {
+    const firstMenu = getFirstMenu(defaultMenus, permissions)
+    navigate(firstMenu)
+    const menuByKeyProps = { menus: defaultMenus, permissions, key: firstMenu }
+    const newItems = getMenuByKey(menuByKeyProps)
+    if (newItems) {
       dispatch(setActiveKey(newItems.key))
       dispatch(setNav([]))
       dispatch(addTabs(newItems))

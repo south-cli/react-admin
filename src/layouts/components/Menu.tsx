@@ -8,8 +8,14 @@ import { useDispatch, useSelector } from 'react-redux'
 import { defaultMenus } from '@/menus'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { setOpenKey } from '@/stores/menu'
-import { filterMenus, getMenuByKey, getOpenMenuByRouter, splitPath } from '@/menus/utils/helper'
 import { addTabs, setNav, setActiveKey } from '@/stores/tabs'
+import {
+  filterMenus,
+  getFirstMenu,
+  getMenuByKey,
+  getOpenMenuByRouter,
+  splitPath
+} from '@/menus/utils/helper'
 import styles from '../index.module.less'
 import Logo from '@/assets/images/logo.svg'
 
@@ -23,6 +29,9 @@ function LayoutMenu() {
   const isMaximize = useSelector((state: RootState) => state.tabs.isMaximize)
   // 菜单是否收缩
   const isCollapsed = useSelector((state: RootState) => state.menu.isCollapsed)
+  // 是否手机端
+  const isPhone = useSelector((state: RootState) => state.menu.isPhone)
+  // 权限
   const permissions = useSelector((state: RootState) => state.user.permissions)
 
   // 处理默认展开
@@ -30,7 +39,8 @@ function LayoutMenu() {
     const { pathname } = location
     const newOpenKey = getOpenMenuByRouter(pathname)
     dispatch(setOpenKey(newOpenKey))
-  }, [dispatch, location])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location])
 
   // 过滤没权限菜单
   useEffect(() => {
@@ -46,10 +56,13 @@ function LayoutMenu() {
    */
   const onClick: MenuProps['onClick'] = e => {
     navigate(e.key)
-    const newTab = getMenuByKey(menus, permissions, e.key)
-    dispatch(setActiveKey(newTab.key))
-    dispatch(setNav(newTab.nav))
-    dispatch(addTabs(newTab))
+    const menuByKeyProps = { menus, permissions, key: e.key }
+    const newTab = getMenuByKey(menuByKeyProps)
+    if (newTab) {
+      dispatch(setActiveKey(newTab.key))
+      dispatch(setNav(newTab.nav))
+      dispatch(addTabs(newTab))
+    }
   }
 
   /**
@@ -97,13 +110,11 @@ function LayoutMenu() {
 
   /** 点击logo */
   const onClickLogo = () => {
-    navigate('/dashboard')
-    const newItems = getMenuByKey(
-      defaultMenus,
-      permissions,
-      '/dashboard'
-    )
-    if (newItems.key) {
+    const firstMenu = getFirstMenu(defaultMenus, permissions)
+    navigate(firstMenu)
+    const menuByKeyProps = { menus: defaultMenus, permissions, key: firstMenu }
+    const newItems = getMenuByKey(menuByKeyProps)
+    if (newItems) {
       dispatch(setActiveKey(newItems.key))
       dispatch(setNav([]))
       dispatch(addTabs(newItems))
@@ -117,7 +128,8 @@ function LayoutMenu() {
         overflow-auto
         ${styles.menu}
         ${isCollapsed ? styles.menuClose : ''}
-        ${isMaximize ? styles.menuNone : ''}
+        ${isMaximize || (isPhone && isCollapsed) ? styles.menuNone : ''}
+        ${isPhone ? 'z-1000' : ''}
       `}
     >
       <div
