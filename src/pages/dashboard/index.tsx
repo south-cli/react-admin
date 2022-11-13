@@ -6,6 +6,7 @@ import { useTitle } from '@/hooks/useTitle'
 import BasicSearch from '@/components/Search/BasicSearch'
 import BasicContent from '@/components/Content/BasicContent'
 import Line from './components/Line'
+import Bar from './components/Bar'
 import Block from './components/Block'
 
 // 初始化搜索
@@ -24,7 +25,6 @@ function Dashboard() {
   const handleSearch = useCallback(async (values: IFormData) => {
     // 数据转换
     values.all_pay = values.all_pay ? 1 : undefined
-    values.register = values.register ? 1 : undefined
 
     const query = { ...values }
     try {
@@ -50,10 +50,14 @@ function Dashboard() {
           handleFinish={handleSearch}
         />
 
-        <div className='p-10px'>
+        <div className='py-10px'>
           <Block />
         </div>
-        <Line />
+
+        <div className='flex justify-between'>
+          <Line />
+          <Bar />
+        </div>
       </>
     </BasicContent>
   )
