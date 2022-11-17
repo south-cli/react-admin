@@ -1,18 +1,14 @@
 import type { AppDispatch, RootState } from '@/stores'
-import type { ItemType } from 'antd/lib/menu/hooks/useItems'
 import type { IPasswordModal } from './UpdatePassword'
 import { useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useAliveController } from 'react-activation'
 import { toggleCollapsed } from '@/stores/menu'
 import { useNavigate } from 'react-router-dom'
 import { useToken } from '@/hooks/useToken'
 import { clearInfo } from '@/stores/user'
-import {
-  Menu,
-  Modal,
-  Dropdown,
-  MenuProps
-} from 'antd'
+import { closeAllTab, setActiveKey } from '@/stores/tabs'
+import { Modal, Dropdown, MenuProps } from 'antd'
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -24,6 +20,7 @@ import Avatar from '@/assets/images/avatar.png'
 import styles from '../index.module.less'
 import Fullscreen from '@/components/Fullscreen'
 import GlobalSearch from '@/components/GlobalSearch'
+import Theme from '@/components/Theme'
 import UpdatePassword from './UpdatePassword'
 import Nav from './Nav'
 
@@ -34,14 +31,15 @@ function Header() {
   const username = useSelector((state: RootState) => state.user.userInfo.username)
   const dispatch: AppDispatch = useDispatch()
   const navigate = useNavigate()
-  const { removeToken } = useToken()
+  const [, , removeToken] = useToken()
+  const { clear } = useAliveController()
   // 是否窗口最大化
   const isMaximize = useSelector((state: RootState) => state.tabs.isMaximize)
   const nav = useSelector((state: RootState) => state.tabs.nav)
   const passwordRef = useRef<IPasswordModal>(null)
 
   // 下拉菜单内容
-  const menuList: ItemType[] = [
+  const items: MenuProps['items'] = [
     {
       key: 'password',
       label: (<span>修改密码</span>),
@@ -70,14 +68,6 @@ function Header() {
     }
   }
 
-  // 下拉菜单内容
-  const menu = (
-    <Menu
-      onClick={onClick}
-      items={menuList}
-    />
-  )
-
   /** 退出登录 */
   const handleLogout = () => {
     Modal.confirm({
@@ -86,7 +76,10 @@ function Header() {
       content: '是否确定退出系统?',
       onOk() {
         dispatch(clearInfo())
+        dispatch(closeAllTab())
+        dispatch(setActiveKey(''))
         removeToken()
+        clear() // 清除keepalive缓存
         navigate('/login')
       }
     })
@@ -98,9 +91,10 @@ function Header() {
       <div className="flex items-center">
         <GlobalSearch />
         <Fullscreen />
+        <Theme />
         <Dropdown
           className="min-w-50px"
-          overlay={menu}
+          menu={{ items, onClick }}
         >
           <div
             className="ant-dropdown-link flex items-center cursor-pointer"

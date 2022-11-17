@@ -7,7 +7,7 @@
 - 获取项目代码
 
 ```bash
-git clone https://github.com/south-cli/react-admin.git
+git clone https://github.com/Southliu/react-admin.git
 ```
 
 - 选择目录
@@ -39,6 +39,19 @@ pnpm dev
 ```bash
 pnpm build
 ```
+
+## 计划
+
+- [x] 主题换肤功能
+- [x] 密码强度显示
+- [x] keepalive功能
+- [x] 表格虚拟滚动优化
+- [ ] form添加富文本、自定义渲染
+- [ ] 新增跳转单独页逻辑
+- [ ] 手机端适配
+- [ ] mock数据
+- [ ] 测试代码
+- [x] 打包分包
 
 ## 图标(iconify)
 

@@ -7,9 +7,15 @@ import { RootState } from '@/stores'
 import { useDispatch, useSelector } from 'react-redux'
 import { defaultMenus } from '@/menus'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { setOpenKey } from '@/stores/menu'
-import { filterMenus, getMenuByKey, getOpenMenuByRouter, splitPath } from '@/menus/utils/helper'
+import { setOpenKeys } from '@/stores/menu'
 import { addTabs, setNav, setActiveKey } from '@/stores/tabs'
+import {
+  filterMenus,
+  getFirstMenu,
+  getMenuByKey,
+  getOpenMenuByRouter,
+  splitPath
+} from '@/menus/utils/helper'
 import styles from '../index.module.less'
 import Logo from '@/assets/images/logo.svg'
 
@@ -18,19 +24,23 @@ function LayoutMenu() {
   const location = useLocation()
   const dispatch: AppDispatch = useDispatch()
   const [menus, setMenus] = useState<ISideMenu[]>([])
-  const openKey = useSelector((state: RootState) => state.menu.openKey)
+  const openKeys = useSelector((state: RootState) => state.menu.openKeys)
   // 是否窗口最大化
   const isMaximize = useSelector((state: RootState) => state.tabs.isMaximize)
   // 菜单是否收缩
   const isCollapsed = useSelector((state: RootState) => state.menu.isCollapsed)
+  // 是否手机端
+  const isPhone = useSelector((state: RootState) => state.menu.isPhone)
+  // 权限
   const permissions = useSelector((state: RootState) => state.user.permissions)
 
   // 处理默认展开
   useEffect(() => {
     const { pathname } = location
     const newOpenKey = getOpenMenuByRouter(pathname)
-    dispatch(setOpenKey(newOpenKey))
-  }, [dispatch, location])
+    dispatch(setOpenKeys(newOpenKey))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location])
 
   // 过滤没权限菜单
   useEffect(() => {
@@ -40,16 +50,27 @@ function LayoutMenu() {
     }
   }, [permissions])
 
+  /**
+   * 处理跳转
+   * @param path - 路径
+   */
+  const goPath = (path: string) => {
+    navigate(path)
+    const menuByKeyProps = { menus, permissions, key: path }
+    const newTab = getMenuByKey(menuByKeyProps)
+    if (newTab) {
+      dispatch(setActiveKey(newTab.key))
+      dispatch(setNav(newTab.nav))
+      dispatch(addTabs(newTab))
+    }
+  }
+
   /** 
    * 点击菜单
    * @param e - 菜单事件
    */
   const onClick: MenuProps['onClick'] = e => {
-    navigate(e.key)
-    const newTab = getMenuByKey(menus, permissions, e.key)
-    dispatch(setActiveKey(newTab.key))
-    dispatch(setNav(newTab.nav))
-    dispatch(addTabs(newTab))
+    goPath(e.key)
   }
 
   /**
@@ -72,42 +93,33 @@ function LayoutMenu() {
 
   /**
    * 展开/关闭回调
-   * @param openKey - 展开键值
+   * @param openKeys - 展开键值
    */
-  const onOpenChange = (openKey: string[]) => {
+  const onOpenChange = (openKeys: string[]) => {
     const newOpenKey: string[] = []
     let last = '' // 最后一个目录结构
 
     // 当目录有展开值
-    if (openKey.length > 0) {
-      last = openKey[openKey.length - 1]
+    if (openKeys.length > 0) {
+      last = openKeys[openKeys.length - 1]
       const lastArr: string[] = splitPath(last)
       newOpenKey.push(last)
 
       // 对比当前展开目录是否是同一层级
-      for (let i = openKey.length - 2; i >= 0; i--) {
-        const arr = splitPath(openKey[i])
+      for (let i = openKeys.length - 2; i >= 0; i--) {
+        const arr = splitPath(openKeys[i])
         const hasOpenKey = diffOpenMenu(arr, lastArr)
-        if (hasOpenKey) newOpenKey.unshift(openKey[i])
+        if (hasOpenKey) newOpenKey.unshift(openKeys[i])
       }
     }
 
-    dispatch(setOpenKey(newOpenKey))
+    dispatch(setOpenKeys(newOpenKey))
   }
 
   /** 点击logo */
   const onClickLogo = () => {
-    navigate('/dashboard')
-    const newItems = getMenuByKey(
-      defaultMenus,
-      permissions,
-      '/dashboard'
-    )
-    if (newItems.key) {
-      dispatch(setActiveKey(newItems.key))
-      dispatch(setNav([]))
-      dispatch(addTabs(newItems))
-    }
+    const firstMenu = getFirstMenu(menus, permissions)
+    goPath(firstMenu)
   }
 
   return (
@@ -117,7 +129,8 @@ function LayoutMenu() {
         overflow-auto
         ${styles.menu}
         ${isCollapsed ? styles.menuClose : ''}
-        ${isMaximize ? styles.menuNone : ''}
+        ${isMaximize || (isPhone && isCollapsed) ? styles.menuNone : ''}
+        ${isPhone ? 'z-1000' : ''}
       `}
     >
       <div
@@ -153,7 +166,7 @@ function LayoutMenu() {
       </div>
       <Menu
         selectedKeys={[location.pathname]}
-        openKeys={openKey}
+        openKeys={openKeys}
         mode="inline"
         theme="dark"
         inlineCollapsed={isCollapsed}

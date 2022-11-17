@@ -1,8 +1,13 @@
 import type { MenuProps } from 'antd'
 import type { AppDispatch, RootState } from '@/stores'
-import { Menu } from 'antd'
+import { useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { closeLeft, closeOther, closeRight, closeTabs } from '@/stores/tabs'
+import {
+  closeLeft,
+  closeOther,
+  closeRight,
+  closeTabs
+} from '@/stores/tabs'
 import {
   RedoOutlined,
   CloseOutlined,
@@ -24,17 +29,19 @@ interface IProps {
   handleRefresh: (activeKey: string) => void;
 }
 
-function DropdownMenu(props: IProps) {
+export function useDropdownMenu(props: IProps) {
   const { activeKey, onOpenChange, handleRefresh } = props
+  const location = useLocation()
   const dispatch: AppDispatch = useDispatch()
   const tabs = useSelector((state: RootState) => state.tabs.tabs)
   const index = tabs.findIndex(item => item.key === activeKey)
 
   // 菜单项
-  const items = [
+  const items: MenuProps['items'] = [
     {
       key: ITabEnums.REFRESH,
       label: '重新加载',
+      disabled: activeKey !== location.pathname,
       icon: <RedoOutlined className="mr-5px transform rotate-270" />
     },
     {
@@ -99,12 +106,5 @@ function DropdownMenu(props: IProps) {
     }
   }
 
-  return (
-    <Menu
-      onClick={onClick}
-      items={items}
-    />
-  )
+  return [items, onClick] as const
 }
-
-export default DropdownMenu

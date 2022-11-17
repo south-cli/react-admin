@@ -1,19 +1,18 @@
-import { message, TabsProps } from 'antd'
+import type { TabsProps } from 'antd'
 import type { AppDispatch, RootState } from '@/stores'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { getMenuByKey, getOpenMenuByRouter } from '@/menus/utils/helper'
+import { getMenuByKey } from '@/menus/utils/helper'
 import { defaultMenus } from '@/menus'
-import { Tabs, Dropdown } from 'antd'
+import { message, Tabs, Dropdown } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { setActiveKey, addTabs, closeTabs, setNav } from '@/stores/tabs'
 import { useAliveController } from 'react-activation'
+import { useDropdownMenu } from '../hooks/useDropdownMenu'
 import { useDispatch, useSelector } from 'react-redux'
-import { setOpenKey } from '@/stores/menu'
 import styles from '../index.module.less'
 import TabRefresh from './TabRefresh'
 import TabMaximize from './TabMaximize'
 import TabOptions from './TabOptions'
-import DropdownMenu from './DropdownMenu'
 
 function LayoutTabs() {
   const navigate = useNavigate()
@@ -29,34 +28,42 @@ function LayoutTabs() {
   // 是否窗口最大化
   const isMaximize = useSelector((state: RootState) => state.tabs.isMaximize)
 
-  useEffect(() => {
+  /**
+   * 添加标签
+   * @param path - 路径
+   */
+  const handleAddTab = useCallback((path = location.pathname) => {
     // 当值为空时匹配路由
-    if (tabs.length === 0 && permissions.length > 0) {
-      if (location.pathname === '/') return
-      const newItems = getMenuByKey(
-        defaultMenus,
+    if (permissions.length > 0) {
+      if (path === '/') return
+      const menuByKeyProps = {
+        menus: defaultMenus,
         permissions,
-        location.pathname
-      )
-      if (newItems.key) {
+        key: path
+      }
+      const newItems = getMenuByKey(menuByKeyProps)
+      if (newItems) {
         dispatch(setActiveKey(newItems.key))
         dispatch(setNav(newItems.nav))
         dispatch(addTabs(newItems))
       }
     }
-  }, [dispatch, location.pathname, permissions, tabs.length])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [permissions])
+
+  useEffect(() => {
+    handleAddTab()
+  }, [handleAddTab])
 
   useEffect(() => {
     // 当选中贴标签不等于当前路由则跳转
     if (activeKey && activeKey !== location.pathname) {
       navigate(activeKey)
-
-      // 处理菜单展开
-      const openKey = getOpenMenuByRouter(activeKey)
-      dispatch(setOpenKey(openKey))
+      handleAddTab(activeKey)
     }
-  }, [activeKey, dispatch, location.pathname, navigate])
-  
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeKey, location.pathname])
+    
   /** 
    * 处理更改
    * @param key - 唯一值
@@ -94,6 +101,7 @@ function LayoutTabs() {
     // 定时器没有执行时运行
     if (!time) {
       setRefresh(true)
+      refresh(key)
       navigate('/loading')
 
       setTime(
@@ -105,7 +113,6 @@ function LayoutTabs() {
 
           setRefresh(false)
           navigate(key)
-          refresh(key)
           message.success({
             content: '刷新成功',
             key: 'refresh'
@@ -114,7 +121,8 @@ function LayoutTabs() {
         }, 1000)
       )
     }
-  }, [activeKey, dispatch, navigate, refresh, time])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeKey, time])
 
   // 渲染重新加载
   const RefreshRender = useMemo(() => {
@@ -148,18 +156,17 @@ function LayoutTabs() {
     { element: TabMaximizeRender }
   ]
 
+  // 下拉菜单
+  const dropdownMenuParams = { activeKey, handleRefresh: onClickRefresh }
+  const [items, onClick] = useDropdownMenu(dropdownMenuParams)
+
   /** 二次封装标签 */
   const renderTabBar: TabsProps['renderTabBar'] = (tabBarProps, DefaultTabBar) => (
     <DefaultTabBar {...tabBarProps}>
       { node => (
         <Dropdown
           key={node.key}
-          overlay={(
-            <DropdownMenu
-              activeKey={node.key as string}
-              handleRefresh={onClickRefresh}
-            />
-          )}
+          menu={{ items, onClick }}
           trigger={['contextMenu']}
         >
           <div className='mr-3px'>
@@ -201,11 +208,11 @@ function LayoutTabs() {
               key={index}
               className={`
                 ${styles.leftDivide}
+                change
                 divide-solid
                 w-36px
                 h-36px
-                text-#00000073
-                hover:text-#404040
+                hover:opacity-70
                 flex
                 place-content-center
                 items-center
