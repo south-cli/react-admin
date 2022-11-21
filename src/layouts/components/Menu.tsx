@@ -7,7 +7,7 @@ import { RootState } from '@/stores'
 import { useDispatch, useSelector } from 'react-redux'
 import { defaultMenus } from '@/menus'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { setOpenKeys } from '@/stores/menu'
+import { setOpenKeys, toggleCollapsed } from '@/stores/menu'
 import { addTabs, setNav, setActiveKey } from '@/stores/tabs'
 import {
   filterMenus,
@@ -38,7 +38,9 @@ function LayoutMenu() {
   useEffect(() => {
     const { pathname } = location
     const newOpenKey = getOpenMenuByRouter(pathname)
-    dispatch(setOpenKeys(newOpenKey))
+    if (!isPhone && !isCollapsed) {
+      dispatch(setOpenKeys(newOpenKey))
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location])
 
@@ -71,6 +73,7 @@ function LayoutMenu() {
    */
   const onClick: MenuProps['onClick'] = e => {
     goPath(e.key)
+    if (isPhone) hiddenMenu()
   }
 
   /**
@@ -120,61 +123,78 @@ function LayoutMenu() {
   const onClickLogo = () => {
     const firstMenu = getFirstMenu(menus, permissions)
     goPath(firstMenu)
+    if (isPhone) hiddenMenu()
+  }
+
+  /** 隐藏菜单 */
+  const hiddenMenu = () => {
+    dispatch(toggleCollapsed(true))
   }
 
   return (
-    <div 
-      className={`
-        transition-all
-        overflow-auto
-        ${styles.menu}
-        ${isCollapsed ? styles.menuClose : ''}
-        ${isMaximize || (isPhone && isCollapsed) ? styles.menuNone : ''}
-        ${isPhone ? 'z-1000' : ''}
-      `}
-    >
-      <div
+    <>
+      <div 
         className={`
-          text-white
-          flex
-          content-center
-          px-5
-          py-2
-          cursor-pointer
-          ${isCollapsed ? 'justify-center' : ''}
+          transition-all
+          overflow-auto
+          ${styles.menu}
+          ${isCollapsed ? styles.menuClose : ''}
+          ${isMaximize || (isPhone && isCollapsed) ? styles.menuNone : ''}
+          ${isPhone ? 'z-1002' : ''}
         `}
-        onClick={onClickLogo}
       >
-        <img
-          src={Logo}
-          width={30}
-          height={30}
-          className="object-contain"
-          alt="logo"
+        <div
+          className={`
+            text-white
+            flex
+            content-center
+            px-5
+            py-2
+            cursor-pointer
+            ${isCollapsed ? 'justify-center' : ''}
+          `}
+          onClick={onClickLogo}
+        >
+          <img
+            src={Logo}
+            width={30}
+            height={30}
+            className="object-contain"
+            alt="logo"
+          />
+          
+          <span className={`
+            text-white
+            ml-3
+            text-xl
+            font-bold
+            truncate
+            ${isCollapsed ? 'hidden' : ''}
+          `}>
+            后台管理系统
+          </span>
+        </div>
+        <Menu
+          className="h-full z-1000"
+          selectedKeys={[location.pathname]}
+          openKeys={openKeys}
+          mode="inline"
+          theme="dark"
+          inlineCollapsed={isCollapsed}
+          items={menus}
+          onClick={onClick}
+          onOpenChange={onOpenChange}
         />
-        
-        <span className={`
-          text-white
-          ml-3
-          text-xl
-          font-bold
-          truncate
-          ${isCollapsed ? 'hidden' : ''}
-        `}>
-          后台管理系统
-        </span>
       </div>
-      <Menu
-        selectedKeys={[location.pathname]}
-        openKeys={openKeys}
-        mode="inline"
-        theme="dark"
-        inlineCollapsed={isCollapsed}
-        items={menus}
-        onClick={onClick}
-        onOpenChange={onOpenChange}
-      />
-    </div>
+
+      {
+        isPhone && !isCollapsed &&
+        <div
+          className={`${styles.cover} fixed w-full h-full bg-gray-500 bg-opacity-10 z-1001`}
+          onClick={hiddenMenu}
+        />
+      }
+    </>
   )
 }
 

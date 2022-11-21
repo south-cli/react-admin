@@ -12,15 +12,13 @@ function BasicContent(props: IProps) {
   const { pathname } = useLocation()
 
   return (
-    <div className="h-full p-10px box-border">
+    <div className="min-w-980px h-full p-10px box-border overflow-auto">
       {
         isPermission !== false &&
         <div
           id="content"
           className={`
-            h-full
             relative
-            overflow-auto
             box-border
             px-5
             pt-5
