@@ -2,7 +2,7 @@ import type { ResizeCallbackData } from 'react-resizable'
 import type { ColumnsType, ColumnType } from 'antd/es/table'
 import type { TableProps } from 'antd'
 import { useMemo, useState, useEffect, memo } from 'react'
-import { Table } from 'antd'
+import { Table, Skeleton } from 'antd'
 import { getTableHeight } from './utils/helper'
 import ResizableTitle from './components/ResizableTitle'
 import useVirtualTable from './hooks/useVirtual'
@@ -34,6 +34,7 @@ function BasicTable(props: IProps) {
 
   // 表格高度
   const tableHeight = getTableHeight()
+
   /**
    * 处理拖拽
    * @param index - 下标
@@ -50,10 +51,10 @@ function BasicTable(props: IProps) {
   }
 
   // 合并列表
-  const mergeColumns: ColumnsType<object> = columns.map((col, index) => ({
+  const mergeColumns = columns.map((col, index) => ({
     ...col,
-    onHeaderCell: column => ({
-      width: (column as ColumnType<object>).width,
+    onHeaderCell: (column: ColumnType<object>) => ({
+      width: column.width,
       onResize: handleResize(index),
     }),
   }))
@@ -98,19 +99,25 @@ function BasicTable(props: IProps) {
         ${isBordered !== false ? 'bordered' : ''}
         ${isZebra !== false ? 'zebra' : ''}
       `}
-      style={{ height: tableHeight }}
     >
-      <Table
-        size='small'
-        rowKey='id'
-        pagination={false}
-        loading={loading}
-        {...props}
-        bordered={isBordered !== false}
-        scroll={scroll}
-        components={components}
-        columns={mergeColumns}
-      />
+      {
+        !tableHeight &&
+        <Skeleton />
+      }
+      {
+        tableHeight &&
+        <Table
+          size='small'
+          rowKey='id'
+          pagination={false}
+          loading={loading}
+          {...props}
+          bordered={isBordered !== false}
+          scroll={scroll}
+          components={components}
+          columns={mergeColumns as ColumnsType<object>}
+        />
+      }
     </div>
   )
 }

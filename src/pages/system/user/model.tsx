@@ -1,6 +1,5 @@
 import type { IFormList } from '#/form'
 import type { ITableColumn, ITableOptions } from '#/public'
-import type { IRowData } from './index'
 import { INPUT_REQUIRED, SELECT_REQUIRED } from '@/utils/config'
 import { OPEN_CLOSE } from '@/utils/constants'
 
@@ -18,48 +17,11 @@ export const searchList: IFormList[] = [
   }
 ]
 
-// 新增数据
-export const createList: IFormList[] = [
-  {
-    label: '嵌套数据',
-    name: ['user', 'name', 'test'],
-    rules: INPUT_REQUIRED,
-    component: 'Input'
-  },
-  {
-    label: '用户名',
-    name: 'username',
-    rules: INPUT_REQUIRED,
-    component: 'Input'
-  },
-  {
-    label: '姓名',
-    name: 'real_name',
-    rules: INPUT_REQUIRED,
-    component: 'Input'
-  },
-  {
-    label: '角色',
-    name: 'roles_name',
-    rules: INPUT_REQUIRED,
-    component: 'Input'
-  },
-  {
-    label: '状态',
-    name: 'status',
-    rules: SELECT_REQUIRED,
-    component: 'Select',
-    componentProps: {
-      options: OPEN_CLOSE
-    }
-  }
-]
-
 /**
  * 表格数据
  * @param optionRender - 渲染操作函数
  */
-export const tableColumns = (optionRender: ITableOptions<IRowData>): ITableColumn => {
+ export const tableColumns = (optionRender: ITableOptions<object>): ITableColumn => {
   return [
     {
       title: 'ID',
@@ -106,7 +68,44 @@ export const tableColumns = (optionRender: ITableOptions<IRowData>): ITableColum
       dataIndex: 'operate',
       width: 200,
       fixed: 'right',
-      render: (value, record) => optionRender(value, record as IRowData)
+      render: (value: unknown, record: object) => optionRender(value, record)
     },
   ]
 }
+
+// 新增数据
+export const createList: IFormList[] = [
+  {
+    label: '嵌套数据',
+    name: ['user', 'name', 'test'],
+    rules: INPUT_REQUIRED,
+    component: 'Input'
+  },
+  {
+    label: '用户名',
+    name: 'username',
+    rules: INPUT_REQUIRED,
+    component: 'Input'
+  },
+  {
+    label: '姓名',
+    name: 'real_name',
+    rules: INPUT_REQUIRED,
+    component: 'Input'
+  },
+  {
+    label: '角色',
+    name: 'roles_name',
+    rules: INPUT_REQUIRED,
+    component: 'Input'
+  },
+  {
+    label: '状态',
+    name: 'status',
+    rules: SELECT_REQUIRED,
+    component: 'Select',
+    componentProps: {
+      options: OPEN_CLOSE
+    }
+  }
+]
