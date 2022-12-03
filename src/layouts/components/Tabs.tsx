@@ -5,10 +5,16 @@ import { getMenuByKey } from '@/menus/utils/helper'
 import { defaultMenus } from '@/menus'
 import { message, Tabs, Dropdown } from 'antd'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { setActiveKey, addTabs, closeTabs, setNav } from '@/stores/tabs'
 import { useAliveController } from 'react-activation'
 import { useDropdownMenu } from '../hooks/useDropdownMenu'
 import { useDispatch, useSelector } from 'react-redux'
+import {
+  setActiveKey,
+  addTabs,
+  closeTabs,
+  setNav,
+  toggleLock
+} from '@/stores/tabs'
 import styles from '../index.module.less'
 import TabRefresh from './TabRefresh'
 import TabMaximize from './TabMaximize'
@@ -16,13 +22,15 @@ import TabOptions from './TabOptions'
 
 function LayoutTabs() {
   const navigate = useNavigate()
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
+  const uri = pathname + search
   const dispatch: AppDispatch = useDispatch()
   const { refresh } = useAliveController()
   const [isRefresh, setRefresh] = useState(false) // 重新加载
   const [time, setTime] = useState<null | NodeJS.Timeout>(null)
 
   const tabs = useSelector((state: RootState) => state.tabs.tabs)
+  const isLock = useSelector((state: RootState) => state.tabs.isLock)
   const activeKey = useSelector((state: RootState) => state.tabs.activeKey)
   const permissions = useSelector((state: RootState) => state.user.permissions)
   // 是否窗口最大化
@@ -32,7 +40,7 @@ function LayoutTabs() {
    * 添加标签
    * @param path - 路径
    */
-  const handleAddTab = useCallback((path = pathname) => {
+  const handleAddTab = useCallback((path = uri) => {
     // 当值为空时匹配路由
     if (permissions.length > 0) {
       if (path === '/') return
@@ -42,10 +50,12 @@ function LayoutTabs() {
         key: path
       }
       const newItems = getMenuByKey(menuByKeyProps)
-      if (newItems) {
+      if (newItems?.key) {
         dispatch(setActiveKey(newItems.key))
         dispatch(setNav(newItems.nav))
         dispatch(addTabs(newItems))
+      } else {
+        dispatch(setActiveKey(path))
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -57,19 +67,24 @@ function LayoutTabs() {
 
   useEffect(() => {
     // 当选中贴标签不等于当前路由则跳转
-    if (activeKey && activeKey !== pathname) {
-      navigate(activeKey)
-      handleAddTab(activeKey)
+    if (activeKey !== uri) {
+      const key = isLock ? activeKey : uri
+      handleAddTab(key)
+
+      if (isLock) {
+        navigate(key)
+        dispatch(toggleLock(false))
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeKey, pathname])
+  }, [activeKey, uri])
     
   /** 
    * 处理更改
    * @param key - 唯一值
    */
   const onChange = (key: string) => {
-    dispatch(setActiveKey(key))
+    navigate(key)
   }
 
   /** 
@@ -93,6 +108,7 @@ function LayoutTabs() {
 
   /** 
    * 点击重新加载
+   * @param key - 点击值
    */
    const onClickRefresh = useCallback((key = activeKey) => {
     // 如果key不是字符串格式则退出
@@ -166,7 +182,10 @@ function LayoutTabs() {
       { node => (
         <Dropdown
           key={node.key}
-          menu={{ items, onClick }}
+          menu={{
+            items: items(node.key as string),
+            onClick: e => onClick(e.key, node.key as string)
+          }}
           trigger={['contextMenu']}
         >
           <div className='mr-3px'>

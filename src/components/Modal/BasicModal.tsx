@@ -107,6 +107,7 @@ function BasicModal(props: ModalProps) {
 
   return (
     <Modal
+      destroyOnClose
       closable={false}
       maskClosable={false}
       width={isFullscreen ? '100%' : props.width || 520}

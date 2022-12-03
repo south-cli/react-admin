@@ -120,5 +120,5 @@ export const createList: (id: string) => IFormList[] = id => [
     componentProps: {
       options: MENU_ACTIONS
     }
-  },
+  }
 ]
