@@ -2,6 +2,7 @@ import type { ILoginData } from './model'
 import type { FormProps } from 'antd'
 import type { AppDispatch, RootState } from '@/stores'
 import type { IThemeType } from '@/stores/public'
+import { message } from 'antd'
 import { setThemeValue } from '@/stores/public'
 import { Form, Button, Input } from 'antd'
 import { useEffect, useState } from 'react'
@@ -44,7 +45,8 @@ function Login() {
       const firstMenu = getFirstMenu(defaultMenus, permissions)
       navigate(firstMenu)
     } 
-  }, [getToken, navigate, permissions])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   /**
    * 处理登录
@@ -55,6 +57,11 @@ function Login() {
       setLoading(true)
       const { data } = await login(values)
       const { data: { token, user, permissions } } = data
+
+      if (!permissions?.length || !token) {
+        return message.error({ content: '用户暂无权限登录', key: 'permissions' })
+      }
+
       const newPermissions = permissionsToArray(permissions)
       const firstMenu = getFirstMenu(defaultMenus, newPermissions)
       setToken(token)
