@@ -1,4 +1,5 @@
 import type { IAllDataType, IArrayData } from '#/public'
+import type { IConstant } from './constants'
 
 /**
  * 首字母大写
@@ -15,6 +16,21 @@ export function firstCapitalize(str: string): string {
  */
 export function amountFormatter(amount: number) {
   return `${amount}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+}
+
+/**
+ * 值转化为label
+ * @param value - 值
+ * @param arr - 常量值
+ */
+export function valueToLable(value: string | number | boolean, arr: IConstant[]): string {
+  for (let i = 0; i < arr?.length; i++) {
+    if (arr[i].value === value) {
+      return arr[i].label
+    }
+  }
+
+  return ''
 }
 
 /**
@@ -38,8 +54,8 @@ export function getUrlParam(search: string, key: string) {
   }
 
   for (let i = 0; i < pairArr.length; i++) {
-    if (pairArr[0][0] === key) {
-      return pairArr[0][1]
+    if (pairArr[i][0] === key) {
+      return pairArr[i][1]
     }
   }
 
