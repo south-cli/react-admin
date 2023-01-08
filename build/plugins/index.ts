@@ -1,8 +1,8 @@
-
 import type { PluginOption } from 'vite'
 import { presetUno, presetAttributify, presetIcons } from 'unocss'
 import { configPageImportPlugin } from './pages'
 import { visualizer } from 'rollup-plugin-visualizer'
+import { preloadPlugin } from './preload'
 import react from '@vitejs/plugin-react'
 import Unocss from 'unocss/vite'
 import viteCompression from 'vite-plugin-compression'
@@ -27,6 +27,8 @@ export function createVitePlugins() {
     viteCompression(),
     // 自动生成路由
     configPageImportPlugin(),
+    // 预加载处理
+    process.env.NODE_ENV === 'production' && preloadPlugin()
   ]
 
   return vitePlugins
