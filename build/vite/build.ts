@@ -1,5 +1,8 @@
 import type { BuildOptions } from 'vite'
-import { splitJSModules, splitPage } from '../utils'
+import {
+  splitJSModules,
+  splitPage
+} from '../utils/helper'
 import {
   COMP_PATH,
   COMP_PREFIX,
@@ -14,6 +17,7 @@ import {
 export function buildOptions(): BuildOptions {
   return {
     chunkSizeWarningLimit: 1000, // 大于1000k才警告
+    sourcemap: process.env.NODE_ENV !== 'production', // 非生产环境开启
     rollupOptions: {
       output: {
         chunkFileNames: 'assets/js/[name].[hash].js',

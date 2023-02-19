@@ -1,6 +1,21 @@
 import type { PluginOption } from 'vite'
-import { lazyCSS, lazyJS, preloadLoad } from '../config'
-import { handleLazyCSS, handleLazyJS, handlePreloadHtml } from '../utils'
+import { lazyCss, lazyJs, preloadLoad } from '../config'
+import {
+  handleLazyCss,
+  handleLazyJs,
+  handlePreloadHtml
+} from '../utils/helper'
+import {
+  handlePreload,
+  getHtmlPath,
+  firstLoad,
+  createPreloadJs,
+  createLazyJs,
+  createCss,
+  handleJs,
+  handleCss,
+  excludeLoad
+} from '../utils/html'
 
 /**
  * 预加载处理
@@ -9,7 +24,7 @@ import { handleLazyCSS, handleLazyJS, handlePreloadHtml } from '../utils'
 export const preloadPlugin = (time = 1000): PluginOption => {
   return {
     name: 'vite-prefetch-plugin',
-    async transformIndexHtml(html: string) {
+    transformIndexHtml: (html: string) => {
       html = html.replace(/modulepreload/g, 'prefetch')
 
       if (!preloadLoad.length) return html
@@ -20,89 +35,39 @@ export const preloadPlugin = (time = 1000): PluginOption => {
       })
 
       // 懒加载js
-      const lazyJSArr: string[] = []
-      lazyJS.forEach((item) => {
-        const props = { html, path: `/${item}`, arr: lazyJSArr }
-        html = handleLazyJS(props)
+      const lazyJsArr: string[] = []
+      lazyJs.forEach((item) => {
+        const props = { html, path: `/${item}`, arr: lazyJsArr }
+        html = handleLazyJs(props)
       })
 
       // 懒加载css
-      const lazyCSSArr: string[] = []
-      lazyCSS.forEach((item) => {
-        const props = { html, path: `/${item}`, arr: lazyCSSArr }
-        html = handleLazyCSS(props)
+      const lazyCssArr: string[] = []
+      lazyCss.forEach((item) => {
+        const props = { html, path: `/${item}`, arr: lazyCssArr }
+        html = handleLazyCss(props)
       })
 
-      const tiemout = `</body>
+      const timeout = `</body>
       <script>
-        let href = window.location.href;
-        // 去除search
-        const searchIndex = href.indexOf('?');
-        if (searchIndex > 0) href = href.substring(0, searchIndex);
-        const arr = href.split('/');
-        const name = arr[arr.length - 1]; // 获取名称
+        ${getHtmlPath}
+        ${firstLoad}
+        ${createPreloadJs}
+        ${createLazyJs}
+        ${createCss}
+        ${handleJs}
+        ${handleCss}
+        ${excludeLoad}
+        ${handlePreload}
 
-        const lazyCSS = ${JSON.stringify(lazyCSSArr)};
+        const time = ${time};
+        const lazyJs = ${JSON.stringify(lazyJsArr)};
+        const lazyCss = ${JSON.stringify(lazyCssArr)};
 
-        for (let i = lazyCSS.length - 1; i >= 0; i--) {
-          if (lazyCSS[i].includes(name)) {
-            const elem = document.createElement("link");
-            elem.rel = "stylesheet";
-            elem.type = "text/css";
-            elem.href = lazyCSS[i];
-            document.body.appendChild(elem);
+        handlePreload(time, lazyJs, lazyCss)
+      </script>`
 
-            lazyCSS.splice(i, 1);
-          }
-        }
-
-        setTimeout(function() {
-          for (let i = lazyCSS.length - 1; i >= 0; i--) {
-            const elem = document.createElement("link");
-            elem.rel = "stylesheet";
-            elem.type = "text/css";
-            elem.href = lazyCSS[i];
-            document.body.appendChild(elem);
-          }
-        }, ${time})
-
-        const lazyJS = ${JSON.stringify(lazyJSArr)};
-
-        // 数据大屏或首页echarts提前渲染
-        if (name === 'dataScreen' || name === 'dashboard') {
-          for (let i = lazyJS.length - 1; i >= 0; i--) {
-            if (lazyJS[i].includes('echarts')) {
-              const elem = document.createElement("link");
-              elem.rel = "modulepreload";
-              elem.crossorigin = "";
-              elem.href = lazyJS[i];
-              document.body.appendChild(elem);
-
-              lazyJS.splice(i, 1);
-            }
-          }
-        }
-
-        for (let i = lazyJS.length - 1; i >= 0; i--) {
-          if (lazyJS[i].includes(name)) {
-            const elem = document.createElement("link");
-            elem.rel = "modulepreload";
-            elem.crossorigin = "";
-            elem.href = lazyJS[i];
-            document.body.appendChild(elem);
-
-            lazyJS.splice(i, 1);
-          }
-        }
-
-        setTimeout(function() {
-          for (let i = 0; i < lazyJS.length; i++) {
-            fetch(lazyJS[i]);
-          }
-        }, ${time});
-        </script>`
-
-      return html.replace('</body>', tiemout)
+      return html.replace('</body>', timeout)
     }
   }
 }
