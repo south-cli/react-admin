@@ -1,12 +1,12 @@
-import Forbidden from '@/pages/403'
+import Forbidden from '@/pages/403';
 
-interface IProps {
+interface Props {
   isPermission?: boolean;
   children: JSX.Element;
 }
 
-function BasicContent(props: IProps) {
-  const { isPermission, children} = props
+function BasicContent(props: Props) {
+  const { isPermission, children } = props;
 
   return (
     <div className="min-w-980px h-full p-10px box-border overflow-auto">
@@ -18,6 +18,8 @@ function BasicContent(props: IProps) {
             relative
             box-border
             px-5
+            py-3
+            rounded-5
           `}
         >
             { children }
@@ -28,7 +30,7 @@ function BasicContent(props: IProps) {
         <Forbidden />
       }
     </div>
-  )
+  );
 }
 
-export default BasicContent
+export default BasicContent;

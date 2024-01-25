@@ -1,49 +1,49 @@
-import { useState, useEffect } from 'react'
-import { amountFormatter } from '@/utils/helper'
+import { useState, useEffect } from 'react';
+import { amountFormatter } from '@/utils/helper';
 
-interface IProps extends React.HTMLAttributes<HTMLDivElement> {
+interface Props extends React.HTMLAttributes<HTMLDivElement> {
   prefix?: string;
   start: number;
   end: number;
 }
 
-function Count(props: IProps) {
-  const { prefix, start, end } = props
-  const [num, setNum] = useState(start)
-  const [timer, setTimer] = useState<NodeJS.Timer | null>(null)
+function Count(props: Props) {
+  const { prefix, start, end } = props;
+  const [num, setNum] = useState(start);
+  const [timer, setTimer] = useState<NodeJS.Timer | null>(null);
 
   useEffect(() => {
-    const count = end - start
-    const time = 2 * 60
-    const add = Math.floor(count / time) || 1
+    const count = end - start;
+    const time = 2 * 60;
+    const add = Math.floor(count / time) || 1;
     setTimer(setInterval(() => {
-      setNum(num => num + add)
-    }))
-  }, [end, start])
+      setNum(num => num + add);
+    }));
+  }, [end, start]);
 
   useEffect(() => {
     if (num >= end) {
       if (timer) {
-        clearInterval(timer)
-        setTimer(null)
+        clearInterval(timer);
+        setTimer(null);
       }
 
-      setNum(end)
+      setNum(end);
     }
-  }, [end, num, timer])
+  }, [end, num, timer]);
 
   useEffect(() => {
     return () => {
       if (timer) {
-        clearInterval(timer)
-        setTimer(null)
+        clearInterval(timer);
+        setTimer(null);
       }
-    }
-  }, [timer])
+    };
+  }, [timer]);
 
   return (
     <span>{ prefix }{ amountFormatter(num) }</span>
-  )
+  );
 }
 
-export default Count
+export default Count;

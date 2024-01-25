@@ -1,16 +1,18 @@
-import { Tooltip } from 'antd'
-import { Icon } from '@iconify/react'
+import { Tooltip } from 'antd';
+import { Icon } from '@iconify/react';
+import { useTranslation } from 'react-i18next';
 
-interface IProps {
+interface Props {
   isRefresh: boolean;
   onClick: () => void;
 }
 
-function TabRefresh(props: IProps) {
-  const { isRefresh, onClick } = props
+function TabRefresh(props: Props) {
+  const { t } = useTranslation();
+  const { isRefresh, onClick } = props;
 
   return (
-    <Tooltip title="重新加载" placement="bottom">
+    <Tooltip title={t('public.reload')} placement="bottom">
       <Icon
         className={`
           change
@@ -25,7 +27,7 @@ function TabRefresh(props: IProps) {
         icon="ant-design:reload-outlined"
       />
     </Tooltip>
-  )
+  );
 }
 
-export default TabRefresh
+export default TabRefresh;

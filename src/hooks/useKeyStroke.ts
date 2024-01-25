@@ -1,4 +1,4 @@
-interface IOptions {
+interface Options {
   ArrowUp?: () => void;
   ArrowDown?: () => void;
   ArrowLeft?: () => void;
@@ -10,7 +10,7 @@ interface IOptions {
  * 键盘按键事件
  * @param options
  */
-export function useKeyStroke(options: IOptions) {
+export function useKeyStroke(options: Options) {
   /**
    * 点击按键
    * @param even - 按键事件
@@ -19,33 +19,33 @@ export function useKeyStroke(options: IOptions) {
     switch (even.key) {
       // 上
       case 'ArrowUp':
-        options.ArrowUp?.()
-        break
+        options.ArrowUp?.();
+        break;
 
       // 下
       case 'ArrowDown':
-        options.ArrowDown?.()
-        break
+        options.ArrowDown?.();
+        break;
 
       // 左
       case 'ArrowLeft':
-        options.ArrowLeft?.()
-        break
+        options.ArrowLeft?.();
+        break;
 
       // 右
       case 'ArrowRight':
-        options.ArrowRight?.()
-        break
+        options.ArrowRight?.();
+        break;
 
       // 回车
       case 'Enter':
-        options.Enter?.()
-        break
+        options.Enter?.();
+        break;
 
       default:
-        break
+        break;
     }
-  }
+  };
 
-  return [onKeyDown] as const
+  return [onKeyDown] as const;
 }

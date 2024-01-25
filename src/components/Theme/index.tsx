@@ -1,64 +1,66 @@
-import type { AppDispatch } from '@/stores'
-import { IThemeType, setThemeValue } from '@/stores/public'
-import { Tooltip } from 'antd'
-import { Icon } from '@iconify/react'
-import { useEffect, useState } from 'react'
-import { THEME_KEY } from '@/utils/config'
-import { useDispatch } from 'react-redux'
-import { useAliveController } from 'react-activation'
+import type { AppDispatch } from '@/stores';
+import { ThemeType, setThemeValue } from '@/stores/public';
+import { Tooltip } from 'antd';
+import { Icon } from '@iconify/react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { THEME_KEY } from '@/utils/config';
+import { useDispatch } from 'react-redux';
+import { useAliveController } from 'react-activation';
 
 function Theme() {
-  const { clear, refresh, getCachingNodes } = useAliveController()
-  const dispatch: AppDispatch = useDispatch()
-  const themeCache = (localStorage.getItem(THEME_KEY) || 'light') as IThemeType
-  const [theme, setTheme] = useState<IThemeType>(themeCache)
+  const { t } = useTranslation();
+  const { clear, refresh, getCachingNodes } = useAliveController();
+  const dispatch: AppDispatch = useDispatch();
+  const themeCache = (localStorage.getItem(THEME_KEY) || 'light') as ThemeType;
+  const [theme, setTheme] = useState<ThemeType>(themeCache);
 
   useEffect(() => {
     if (!themeCache) {
-      localStorage.setItem(THEME_KEY, 'light')
+      localStorage.setItem(THEME_KEY, 'light');
     }
     if (themeCache === 'dark') {
-      document.body.className = 'theme-dark'
+      document.body.className = 'theme-dark';
     }
-    dispatch(setThemeValue(themeCache === 'dark' ? 'dark' : 'light'))
+    dispatch(setThemeValue(themeCache === 'dark' ? 'dark' : 'light'));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [themeCache])
+  }, [themeCache]);
 
   /** 刷新全部keepalive */
   const refreshAllKeepalive = () => {
-    const cacheNodes = getCachingNodes()
+    const cacheNodes = getCachingNodes();
 
     for (let i = 0; i < cacheNodes?.length; i++) {
-      const { name } = cacheNodes[i]
-      if (name) refresh(name)
+      const { name } = cacheNodes[i];
+      if (name) refresh(name);
     }
-  }
+  };
 
   /**
    * 处理更新
    * @param type - 主题类型
    */
-  const onChange = (type: IThemeType) => {
-    localStorage.setItem(THEME_KEY, type)
-    dispatch(setThemeValue(type))
-    setTheme(type)
+  const onChange = (type: ThemeType) => {
+    localStorage.setItem(THEME_KEY, type);
+    dispatch(setThemeValue(type));
+    setTheme(type);
 
-    clear()
-    refreshAllKeepalive()
+    clear();
+    refreshAllKeepalive();
 
     switch (type) {
       case 'dark':
-        document.body.className = 'theme-dark'
-        break
+        document.body.className = 'theme-dark';
+        break;
 
       default:
-        document.body.className = 'theme-primary'
-        break
+        document.body.className = 'theme-primary';
+        break;
     }
-  }
+  };
 
   return (
-    <Tooltip title='主题模式'>
+    <Tooltip title={t('public.themes')}>
       <div className="flex items-center justify-center text-lg mr-4 cursor-pointer">
         {
           theme === 'light' &&
@@ -76,7 +78,7 @@ function Theme() {
         }
       </div>
     </Tooltip>
-  )
+  );
 }
 
-export default Theme
+export default Theme;

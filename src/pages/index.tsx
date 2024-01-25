@@ -1,27 +1,33 @@
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useToken } from '@/hooks/useToken'
-import Image from '@/assets/images/welcome.png'
+import { useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getFirstMenu } from '@/menus/utils/helper';
+import { useToken } from '@/hooks/useToken';
+import { useCommonStore } from '@/hooks/useCommonStore';
 
 function Page() {
-  const [getToken] = useToken()
-  const token = getToken()
-  const navigate = useNavigate()
+  const [getToken] = useToken();
+  const { permissions, menuList } = useCommonStore();
+  const token = getToken();
+  const navigate = useNavigate();
+
+  /** 跳转第一个有效菜单路径 */
+  const goFirstMenu = useCallback(() => {
+    const firstMenu = getFirstMenu(menuList, permissions);
+    navigate(firstMenu);
+  }, [menuList, navigate, permissions]);
 
   useEffect(() => {
-    if (!token) navigate('/login')
+    if (!token) return navigate('/login');
+
+    // 跳转第一个有效菜单路径
+    goFirstMenu();
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token])
+  }, [token]);
   
   return (
-    <div className='flex justify-center'>
-      <img
-        src={Image}
-        alt="Image"
-        className='w-980px h-full container'
-      />
-    </div>
-  )
+    <div></div>
+  );
 }
 
-export default Page
+export default Page;

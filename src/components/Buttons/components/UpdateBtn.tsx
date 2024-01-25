@@ -1,16 +1,18 @@
-import type { ButtonProps } from 'antd'
-import { Button } from 'antd'
+import type { ButtonProps } from 'antd';
+import { Button } from 'antd';
+import { useTranslation } from 'react-i18next';
 
-interface IProps extends Omit<ButtonProps, 'loading'> {
+interface Props extends Omit<ButtonProps, 'loading'> {
   isLoading: boolean;
 }
 
-function UpdateBtn(props: IProps) {
-  const { isLoading } = props
+function UpdateBtn(props: Props) {
+  const { isLoading } = props;
+  const { t } = useTranslation();
 
   // 清除自定义属性
-  const params: Partial<IProps> = { ...props }
-  delete params.isLoading
+  const params: Partial<Props> = { ...props };
+  delete params.isLoading;
 
   return (
     <Button
@@ -18,9 +20,9 @@ function UpdateBtn(props: IProps) {
       {...params}
       loading={!!isLoading}
     >
-      编辑
+      { t('public.edit') }
     </Button>
-  )
+  );
 }
 
-export default UpdateBtn
+export default UpdateBtn;
