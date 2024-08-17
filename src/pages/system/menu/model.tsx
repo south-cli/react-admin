@@ -1,40 +1,42 @@
-import type { IFormList } from "#/form"
-import type { ITableColumn, ITableOptions } from '#/public'
-import { INPUT_REQUIRED, SELECT_REQUIRED } from '@/utils/config'
-import { MENU_ACTIONS, MENU_MODULE, MENU_STATUS } from '@/utils/constants'
-import { valueToLabel } from "@/utils/helper"
+import type { FormList, SearchList } from "#/form";
+import type { TFunction } from "i18next";
+import type { TableColumn, TableOptions } from '#/public';
+import { FORM_REQUIRED } from '@/utils/config';
+import { MENU_ACTIONS, MENU_MODULE, MENU_STATUS } from '@/utils/constants';
+import { valueToLabel } from "@/utils/helper";
 
 // 搜索数据
-export const searchList: IFormList[] = [
+export const searchList = (t: TFunction): SearchList[] => [
   {
-    label: '状态',
+    label: t('system.state'),
     name: 'status',
+    wrapperCol: 100,
     component: 'Select',
     componentProps: {
-      options: MENU_STATUS
+      options: MENU_STATUS(t)
     }
   },
   {
-    label: '模块',
+    label: t('system.module'),
     name: 'module',
     wrapperCol: 170,
     component: 'Select',
     componentProps: {
-      options: MENU_MODULE
+      options: MENU_MODULE(t)
     }
   },
   {
-    label: '控制器',
+    label: t('system.controller'),
     name: 'controller',
     component: 'Input'
   }
-]
+];
 
 /**
  * 表格数据
  * @param optionRender - 渲染操作函数
  */
-export const tableColumns = (optionRender: ITableOptions<object>): ITableColumn => {
+export const tableColumns = (t: TFunction, optionRender: TableOptions<object>): TableColumn => {
   return [
     {
       title: 'ID',
@@ -42,87 +44,87 @@ export const tableColumns = (optionRender: ITableOptions<object>): ITableColumn 
       width: 200
     },
     {
-      title: '名称',
+      title: t('public.name'),
       dataIndex: 'name',
       width: 200
     },
     {
-      title: '状态',
+      title: t('system.state'),
       dataIndex: 'status',
       width: 200,
       render: (value: number) => (
-        <span>{ valueToLabel(value, MENU_STATUS) }</span>
+        <span>{ valueToLabel(value, MENU_STATUS(t)) }</span>
       )
     },
     {
-      title: '模块',
+      title: t('system.module'),
       dataIndex: 'module',
       width: 200
     },
     {
-      title: '控制器',
+      title: t('system.controller'),
       dataIndex: 'controller',
       width: 200
     },
     {
-      title: '创建时间',
+      title: t('public.creationTime'),
       dataIndex: 'created_at',
       width: 200
     },
     {
-      title: '更新时间',
+      title: t('public.updateTime'),
       dataIndex: 'updated_at',
       width: 200
     },
     {
-      title: '操作',
+      title: t('public.operate'),
       dataIndex: 'operate',
       width: 200,
       fixed: 'right',
       render: (value: unknown, record: object) => optionRender(value, record)
     },
-  ]
-}
+  ];
+};
 
 // 新增数据
-export const createList: (id: string) => IFormList[] = id => [
+export const createList = (t: TFunction, id: string): FormList[] => [
   {
-    label: '名称',
+    label: t('public.name'),
     name: 'name',
-    rules: INPUT_REQUIRED,
+    rules: FORM_REQUIRED,
     component: 'Input'
   },
   {
-    label: '状态',
+    label: t('system.state'),
     name: 'status',
-    rules: SELECT_REQUIRED,
+    rules: FORM_REQUIRED,
     component: 'Select',
     componentProps: {
-      options: MENU_STATUS
+      options: MENU_STATUS(t)
     }
   },
   {
-    label: '模块',
+    label: t('system.module'),
     name: 'module',
-    rules: SELECT_REQUIRED,
+    rules: FORM_REQUIRED,
     component: 'Select',
     componentProps: {
-      options: MENU_MODULE
+      options: MENU_MODULE(t)
     }
   },
   {
-    label: '控制器',
+    label: t('system.controller'),
     name: 'controller',
-    rules: INPUT_REQUIRED,
+    rules: FORM_REQUIRED,
     component: 'Input'
   },
   {
-    label: '创建菜单',
+    label: t('system.createMenu'),
     name: 'actions',
     hidden: !!id,
     component: 'CheckboxGroup',
     componentProps: {
-      options: MENU_ACTIONS
+      options: MENU_ACTIONS(t)
     }
   }
-]
+];

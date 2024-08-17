@@ -1,41 +1,51 @@
-import type { PluginOption } from 'vite'
-import { presetUno, presetAttributify, presetIcons } from 'unocss'
-import { configPageImportPlugin } from './pages'
-import { visualizer } from 'rollup-plugin-visualizer'
-import { preloadPlugin } from './preload'
-import { timePlugin } from './time'
-import { imgMinPlugin } from './imgMin'
-import react from '@vitejs/plugin-react'
-import Unocss from 'unocss/vite'
-import viteCompression from 'vite-plugin-compression'
+import type { PluginOption } from 'vite';
+import { presetUno, presetAttributify, presetIcons } from 'unocss';
+import { visualizer } from 'rollup-plugin-visualizer';
+import { timePlugin } from './time';
+import { versionUpdatePlugin } from './version';
+import react from '@vitejs/plugin-react-swc';
+import legacy from '@vitejs/plugin-legacy';
+import unocss from 'unocss/vite';
+import viteCompression from 'vite-plugin-compression';
 
 export function createVitePlugins() {
   // 插件参数
   const vitePlugins: PluginOption[] = [
     react(),
-    Unocss({
+    unocss({
       presets: [
         presetUno(), 
         presetAttributify(), 
         presetIcons()
-      ],
+      ]
     }),
+    // 版本控制
+    versionUpdatePlugin()
+  ];
+
+  if (process.env.NODE_ENV === 'production') {
     // 包分析
     visualizer({
       gzipSize: true,
       brotliSize: true,
     }),
+    // 兼容低版本
+    legacy({
+      targets: [ 
+          'Android > 39', 
+          'Chrome >= 60', 
+          'Safari >= 10.1', 
+          'iOS >= 10.3', 
+          'Firefox >= 54', 
+          'Edge >= 15', 
+        ], 
+        additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
+    }),
     // 打包时间
     timePlugin(),
-    // 图片压缩
-    imgMinPlugin(),
     // 压缩包
-    viteCompression(),
-    // 自动生成路由
-    configPageImportPlugin(),
-    // 预加载处理
-    process.env.NODE_ENV === 'production' && preloadPlugin()
-  ]
+    vitePlugins.push(viteCompression());
+  }
 
-  return vitePlugins
+  return vitePlugins;
 }

@@ -1,6 +1,6 @@
-import type { SelectProps } from 'antd'
-import { getPartner } from '@/servers/platform/partner'
-import ApiSelect from '@/components/Selects/ApiSelect'
+import type { SelectProps } from 'antd';
+import { getPartner } from '@/servers/platform/partner';
+import ApiSelect from '@/components/Selects/ApiSelect';
 
 /**
  * @description: 合作公司下拉组件
@@ -11,8 +11,9 @@ function PartnerSelect(props: SelectProps) {
       {...props}
       api={getPartner}
       mode='multiple'
+      fieldNames={{ label: 'name', value: 'id' }}
     />
-  )
+  );
 }
 
-export default PartnerSelect
+export default PartnerSelect;

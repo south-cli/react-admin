@@ -1,9 +1,10 @@
-import type { IFormData, IFormList } from '#/form'
-import type { Dayjs } from 'dayjs'
-import type { RangeValue } from '#/public'
-import type { DatePickerProps } from 'antd'
-import { DATE_FORMAT } from '@/utils/constants'
-import dayjs from 'dayjs'
+import type { FormData, FormList } from '#/form';
+import type { Dayjs } from 'dayjs';
+import type { RangeValue } from '#/public';
+import type { DatePickerProps } from 'antd';
+import type { RangeValueType } from 'rc-picker/lib/PickerInput/RangePicker';
+import { DATE_FORMAT } from '@/utils/config';
+import dayjs from 'dayjs';
 
 /**
  * @description isDayjs必须使用dayjs.isDayjs形式，否则打包会失败
@@ -18,9 +19,9 @@ import dayjs from 'dayjs'
   format = DATE_FORMAT
 ): string {
   if (dayjs.isDayjs(value)) {
-    return value.format(format)
+    return value.format(format);
   }
-  return value
+  return value;
 }
 
 /**
@@ -29,9 +30,9 @@ import dayjs from 'dayjs'
  */
 export function string2Dayjs(value: Dayjs | string): Dayjs {
   if (dayjs.isDayjs(value)) {
-    return value
+    return value;
   }
-  return dayjs(value)
+  return dayjs(value);
 }
 
 /**
@@ -42,7 +43,7 @@ export function dayjsRang2StringRang(
   value: RangeValue<Dayjs>,
   format = DATE_FORMAT
 ) {
-  if (!value) return undefined
+  if (!value) return undefined;
 
   if (
     value?.length > 1 &&
@@ -52,9 +53,9 @@ export function dayjsRang2StringRang(
     return [
       value[0].format(format),
       value[1].format(format)
-    ]
+    ];
   }
-  return value
+  return value;
 }
 
 /**
@@ -62,9 +63,9 @@ export function dayjsRang2StringRang(
  * @param value - 字符串
  */
 export function stringRang2DayjsRang(
-  value: RangeValue<string> | RangeValue<Dayjs>
+  value: RangeValueType<string> | RangeValueType<Dayjs>
 ): RangeValue<Dayjs> | undefined {
-  if (!value) return undefined
+  if (!value) return undefined;
 
   // 当第一个数据都不为Dayjs
   if (
@@ -72,7 +73,7 @@ export function stringRang2DayjsRang(
     !dayjs.isDayjs(value?.[0]) &&
     dayjs.isDayjs(value?.[1])
   ) {
-    return [dayjs(value[0]), value[1]]
+    return [dayjs(value[0]), value[1]];
   }
 
   // 当最后一个数据都不为Dayjs
@@ -81,7 +82,7 @@ export function stringRang2DayjsRang(
     dayjs.isDayjs(value?.[0]) &&
     !dayjs.isDayjs(value?.[1])
   ) {
-    return [value[0], dayjs(value[1])]
+    return [value[0], dayjs(value[1])];
   }
 
   // 当两个数据都不为Dayjs
@@ -90,9 +91,9 @@ export function stringRang2DayjsRang(
     !dayjs.isDayjs(value?.[0]) &&
     !dayjs.isDayjs(value?.[1])
   ) {
-    return [dayjs(value[0]), dayjs(value[1])]
+    return [dayjs(value[0]), dayjs(value[1])];
   }
-  return value as RangeValue<Dayjs>
+  return value as RangeValue<Dayjs>;
 }
 
 /**
@@ -100,15 +101,15 @@ export function stringRang2DayjsRang(
  * @param list - 列表值
  * @param key - 键值
  */
-function getListKeyParam(list: IFormList[], key: string): string {
+function getListKeyParam(list: FormList[], key: string): string {
   for (let i = 0; i < list.length; i++) {
     if (list[i].name === key) {
       return (list[i].componentProps as DatePickerProps)?.format as string
-              || DATE_FORMAT
+              || DATE_FORMAT;
     }
   }
 
-  return DATE_FORMAT
+  return DATE_FORMAT;
 }
 
 /**
@@ -116,7 +117,7 @@ function getListKeyParam(list: IFormList[], key: string): string {
  * @param obj - 检测对象
  * @param list - 列表值
  */
-export function filterDayjs(obj: IFormData, list: IFormList[]): object {
+export function filterDayjs(obj: FormData, list: FormList[]): object {
   for (const key in obj) {
     // 判断是否是时间区间
     if (
@@ -124,19 +125,19 @@ export function filterDayjs(obj: IFormData, list: IFormList[]): object {
       dayjs.isDayjs((obj[key] as [Dayjs, Dayjs])[0]) &&
       dayjs.isDayjs((obj[key] as [Dayjs, Dayjs])[1]) 
     ) {
-      const format = getListKeyParam(list, key)
+      const format = getListKeyParam(list, key);
       obj[key] = dayjsRang2StringRang(
         obj[key] as [Dayjs, Dayjs],
         format
-      )
+      );
     }
 
     // 如果是Dayjs类型则转换成字符串
     if (obj?.[key] && dayjs.isDayjs(obj[key])) {
-      const format = getListKeyParam(list, key)
-      obj[key] = dayjs2String(obj[key] as Dayjs, format)
+      const format = getListKeyParam(list, key);
+      obj[key] = dayjs2String(obj[key] as Dayjs, format);
     }
   }
 
-  return obj
+  return obj;
 }

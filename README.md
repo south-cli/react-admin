@@ -1,12 +1,19 @@
+<div align="center">
+	<h1>React Admin</h1>
+</div>
+
+[![license](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE) ![](https://img.shields.io/github/stars/southliu/south-admin)
+
 ## ✨ 简介
 
 使用`React18`,`Typescript`,`Vite`,`Antd5.0`等主流技术开发的开箱即用的中后台前端项目，`Vite`实现自动生成路由，支持`KeepAlive`功能，`react-redux`状态管理，支持虚拟滚动表格，`UnoCss`开发样式。
 
 ## 🚀 项目演示
-[演示地址](https://southliu.github.io/)<br>
-[国内访问](https://southliu.gitee.io)
+[演示地址](https://southliu.github.io/)
 
-## 🐱‍💻 安装使用
+![image](https://github.com/southliu/react-admin/assets/26358837/5e7e59a8-d836-46ef-ac41-0d2c5de63e6e)
+
+## 💻 安装使用
 
 - 获取项目代码
 
@@ -44,22 +51,6 @@ pnpm dev
 pnpm build
 ```
 
-## 💡 计划
-
-- [x] 主题换肤功能
-- [x] 密码强度显示
-- [x] KeepAlive功能
-- [x] 表格虚拟滚动优化
-- [x] form添加富文本、自定义渲染
-- [x] 新增跳转单独页逻辑
-- [x] 可视化数据大屏
-- [x] 打包分包
-- [x] 手机端适配
-- [ ] tsup打包提速
-- [ ] Web Worker
-- [ ] Web Assembly
-- [ ] 测试用例
-
 ## 🧩 图标(iconify)
 
 - 参考 [iconify官方地址](https://icon-sets.iconify.design/)
@@ -72,6 +63,7 @@ git add .
 git commit -m "feat: 新增功能"
 git push
 ```
+### 按照以上规范依旧无法提交代码，请在终端执行`npx husky install`之后重新提交。
 
 ## 🎯 Git 贡献提交规范
 
@@ -91,11 +83,18 @@ git push
   - `types` 类型定义文件更改
   - `wip` 开发中
 
-- 如果无法运行commitlint，请运行以下指令：
+## 🎈 路由
 
-```
-  npx husky add .husky/commit-msg 'npx --no-install commitlint --edit "$1"'
-```
+路由根据文件夹路径自动生成，路径包含以下文件名或文件夹名称则不生成：
+
+* components
+* utils
+* lib
+* hooks
+* model.tsx
+* 404.tsx
+
+可自行在 src/router/utils/config.ts 修改路由生成规则。
 
 ## 🐵 关于封装
   1. 功能扩展，在原有的api上拓展。

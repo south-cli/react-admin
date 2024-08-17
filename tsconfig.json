@@ -19,7 +19,6 @@
     "baseUrl": ".",
     "types": [
       "vite/client",
-      "vite-plugin-pages/client-react",
       "node"
     ],
     "paths": {
@@ -27,7 +26,7 @@
       "#/*": ["types/*"]
     }
   },
-  "include": ["src", "tests"],
+  "include": ["src"],
   "exclude": ["dist", "node_modules", "cypress"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

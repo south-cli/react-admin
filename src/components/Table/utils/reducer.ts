@@ -1,12 +1,12 @@
 
-export interface IInitTableState {
+export interface InitTableState {
   rowHeight: number
   curScrollTop: number
   scrollHeight: number
   tableScrollY: number
 }
 
-export interface ITableAction extends Partial<IInitTableState> {
+export interface TableAction extends Partial<InitTableState> {
   type: 'changeScroll' | 'reset';
 }
 
@@ -15,25 +15,25 @@ export interface ITableAction extends Partial<IInitTableState> {
  * @param state - 初始化值
  * @param action - 触发值
  */
-export function reducer(state: IInitTableState, action: ITableAction) {
+export function reducer(state: InitTableState, action: TableAction) {
   switch (action.type) {
     // 监听滚动变化
     case 'changeScroll':
-      let curScrollTop = action.curScrollTop || 0
-      let scrollHeight = action.scrollHeight || 0
-      const tableScrollY = action.tableScrollY || 0
+      let curScrollTop = action.curScrollTop || 0;
+      let scrollHeight = action.scrollHeight || 0;
+      const tableScrollY = action.tableScrollY || 0;
 
       // 处理scrollHeight小于0的情况
-      if (scrollHeight <= 0) scrollHeight = 0
+      if (scrollHeight <= 0) scrollHeight = 0;
 
       // 更新可滚动区高度
       if (scrollHeight !== 0 && tableScrollY === state.tableScrollY) {
-        scrollHeight = state.scrollHeight
+        scrollHeight = state.scrollHeight;
       }
 
       // 更新当前滚动高度
       if (state.scrollHeight && curScrollTop > state.scrollHeight) {
-        curScrollTop = state.scrollHeight
+        curScrollTop = state.scrollHeight;
       }
       
       return {
@@ -41,7 +41,7 @@ export function reducer(state: IInitTableState, action: ITableAction) {
         curScrollTop,
         scrollHeight,
         tableScrollY
-      }
+      };
 
     // 重置
     case 'reset':
@@ -49,9 +49,9 @@ export function reducer(state: IInitTableState, action: ITableAction) {
         ...state,
         curScrollTop: 0,
         scrollHeight: 0
-      }
+      };
 
     default:
-      throw new Error('表格：未知错误类型!')
+      throw new Error('表格：未知错误类型!');
   }
 }

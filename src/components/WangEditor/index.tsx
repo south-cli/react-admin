@@ -1,31 +1,33 @@
-import '@wangeditor/editor/dist/css/style.css'
-import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
-import { useState, useEffect } from 'react'
-import { Editor, Toolbar } from '@wangeditor/editor-for-react'
-import { FILE_API } from '@/utils/config'
+import '@wangeditor/editor/dist/css/style.css';
+import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor';
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Editor, Toolbar } from '@wangeditor/editor-for-react';
+import { FILE_API } from '@/utils/config';
 
-export interface IEditorProps {
+export interface EditorProps {
   value: string; // 富文本内容
   onChange: (value: string) => void; // 处理更改内容
   height?: number; // 富文本高度
   className?: string;
 }
 
-function WangEditor(props: IEditorProps) {
-  const { value, height, className, onChange } = props
+function WangEditor(props: EditorProps) {
+  const { value, height, className, onChange } = props;
+  const { t } = useTranslation();
 
   // editor 实例
-  const [editor, setEditor] = useState<IDomEditor | null>(null)
+  const [editor, setEditor] = useState<IDomEditor | null>(null);
 
   // 编辑器内容
-  const [html, setHtml] = useState(value)
+  const [html, setHtml] = useState(value);
 
   // 工具栏配置
-  const toolbarConfig: Partial<IToolbarConfig> = {}
+  const toolbarConfig: Partial<IToolbarConfig> = {};
 
   // 编辑器配置
   const editorConfig: Partial<IEditorConfig> = {
-    placeholder: '请输入内容...',
+    placeholder: t('public.inputPleaseEnter'),
     MENU_CONF: {
       uploadImage: {
         // 上传图片地址
@@ -36,29 +38,29 @@ function WangEditor(props: IEditorProps) {
         server: FILE_API
       }
     }
-  }
+  };
 
   // 监听值变化
   useEffect(() => {
-    setHtml(value || '')
-  }, [value])
+    setHtml(value || '');
+  }, [value]);
 
   // 及时销毁 editor ，重要！
   useEffect(() => {
     return () => {
-      if (editor === null) return
-      editor.destroy()
-      setEditor(null)
-    }
-  }, [editor])
+      if (editor === null) return;
+      editor.destroy();
+      setEditor(null);
+    };
+  }, [editor]);
 
   /**
    * 更改富文本内容
    */
   const handleChange = (editor: IDomEditor) => {
-    setHtml(editor.getHtml())
-    onChange(editor.getHtml())
-  }
+    setHtml(editor.getHtml());
+    onChange(editor.getHtml());
+  };
 
   return (
     <div
@@ -81,7 +83,7 @@ function WangEditor(props: IEditorProps) {
         style={{ height: height || 300, overflowY: 'hidden' }}
       />
     </div>
-  )
+  );
 }
 
-export default WangEditor
+export default WangEditor;

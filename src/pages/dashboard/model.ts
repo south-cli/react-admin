@@ -1,9 +1,11 @@
-import type { IFormList } from "#/form"
+import type { FormList } from "#/form";
+import type { TFunction } from "i18next";
+import { getGames } from '@/servers/platform/game';
 
 // 搜索数据
-export const searchList: IFormList[] = [
+export const searchList = (t: TFunction): FormList[] => [
   {
-    label: '日期',
+    label: t('public.date'),
     name: 'pay_date',
     component: 'RangePicker',
     componentProps: {
@@ -11,21 +13,31 @@ export const searchList: IFormList[] = [
     }
   },
   {
-    label: '游戏ID',
+    label: t('dashboard.gameID'),
     name: 'game_ids',
     wrapperCol: 200,
     component: 'GameSelect',
   },
   {
-    label: '合作公司',
+    label: t('dashboard.cooperativeCompany'),
     name: 'partners',
     wrapperCol: 200,
     component: 'PartnerSelect'
   },
   {
-    label: '全服充值',
-    name: 'all_pay',
-    wrapperCol: 15,
-    component: 'Checkbox'
-  }
-]
+    label: t('dashboard.gameID') + '2',
+    name: 'keyword2',
+    wrapperCol: 200,
+    component: 'ApiSelect',
+    componentProps: {
+      api: getGames,
+      params: {
+        isAll: true
+      },
+      fieldNames: {
+        label: 'name',
+        value: 'id'
+      }
+    }
+  },
+];

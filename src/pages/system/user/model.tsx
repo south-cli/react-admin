@@ -1,100 +1,115 @@
-import type { IFormList } from '#/form'
-import type { ITableColumn, ITableOptions } from '#/public'
-import { INPUT_REQUIRED, SELECT_REQUIRED } from '@/utils/config'
-import { OPEN_CLOSE } from '@/utils/constants'
+import type { FormList, SearchList } from '#/form';
+import type { TFunction } from 'i18next';
+import type { TableColumn, TableOptions } from '#/public';
+import { FORM_REQUIRED } from '@/utils/config';
+import { OPEN_CLOSE } from '@/utils/constants';
+
+const otherSearch: SearchList[] = [];
+
+for (let i = 0; i < 32; i++) {
+  otherSearch.push({
+    label: `名称${i + 1}`,
+    name: `label${i + 1}`,
+    component: 'Input',
+    componentProps: {
+      maxLength: 200
+    }
+  });
+}
 
 // 搜索数据
-export const searchList: IFormList[] = [
+export const searchList = (t: TFunction): SearchList[] => [
   {
-    label: '年龄',
+    label: t('system.age'),
     name: 'age',
     component: 'InputNumber'
   },
   {
-    label: '名字',
+    label: t('public.name'),
     name: 'keyword',
     component: 'Input'
-  }
-]
+  },
+  ...otherSearch,
+];
 
 /**
  * 表格数据
  * @param optionRender - 渲染操作函数
  */
- export const tableColumns = (optionRender: ITableOptions<object>): ITableColumn => {
+ export const tableColumns = (t: TFunction, optionRender: TableOptions<object>): TableColumn => {
   return [
     {
       title: 'ID',
       dataIndex: 'id',
-      width: 400,
+      width: 200,
       fixed: 'left'
     },
     {
-      title: '用户名',
+      title: t('login.username'),
       dataIndex: 'username',
-      width: 400,
+      width: 200,
       fixed: 'left'
     },
     {
-      title: '姓名',
+      title: t('public.name'),
       dataIndex: 'real_name',
       width: 400
     },
     {
-      title: '角色',
+      title: t('system.role'),
       dataIndex: 'roles_name',
       width: 400
     },
     {
-      title: '手机号',
+      title: t('system.phone'),
       dataIndex: 'phone',
       width: 400
     },
     {
-      title: '状态',
+      title: t('system.state'),
       dataIndex: 'status',
       width: 200,
       render: (value: boolean) => (
-        <span>{ value ? '开启' : '关闭' }</span>
+        <span>{ value ? t('public.open') : t('public.close') }</span>
       )
     },
     {
-      title: '操作',
+      title: t('public.operate'),
       dataIndex: 'operate',
       width: 200,
       fixed: 'right',
       render: (value: unknown, record: object) => optionRender(value, record)
     },
-  ]
-}
+  ];
+};
 
 // 新增数据
-export const createList: IFormList[] = [
+export const createList = (t: TFunction): FormList[] => [
   {
-    label: '用户名',
+    label: t('login.username'),
     name: 'username',
-    rules: INPUT_REQUIRED,
+    rules: FORM_REQUIRED,
     component: 'Input'
   },
   {
-    label: '姓名',
+    label: t('public.name'),
     name: 'real_name',
-    rules: INPUT_REQUIRED,
+    rules: FORM_REQUIRED,
     component: 'Input'
   },
   {
-    label: '角色',
+    label: t('system.role'),
     name: 'roles_name',
-    rules: INPUT_REQUIRED,
+    rules: FORM_REQUIRED,
     component: 'Input'
   },
   {
-    label: '状态',
+    label: t('system.state'),
     name: 'status',
-    rules: SELECT_REQUIRED,
+    rules: FORM_REQUIRED,
     component: 'Select',
     componentProps: {
-      options: OPEN_CLOSE
+      options: OPEN_CLOSE(t)
     }
   }
-]
+];

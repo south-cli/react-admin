@@ -1,17 +1,20 @@
-import { Button } from 'antd'
+import { Button } from 'antd';
+import { useTranslation } from 'react-i18next';
 
-interface IProps {
+interface Props {
   goBack: () => void;
   handleSubmit: () => void;
   isLoading?: boolean;
   children?: JSX.Element;
 }
 
-function SubmitBottom(props: IProps) {
-  const { goBack, handleSubmit, isLoading, children } = props
+function SubmitBottom(props: Props) {
+  const { t } = useTranslation();
+  const { goBack, handleSubmit, isLoading, children } = props;
 
   return (
     <div className={`
+      w-full
       bg
       fixed
       flex
@@ -32,17 +35,17 @@ function SubmitBottom(props: IProps) {
         danger
         onClick={goBack}
       >
-        返回
+        { t('public.back') }
       </Button>
       <Button
         loading={!!isLoading}
         type="primary"
         onClick={handleSubmit}
       >
-        提交
+        { t('public.submit') }
       </Button>
     </div>
-  )
+  );
 }
 
-export default SubmitBottom
+export default SubmitBottom;

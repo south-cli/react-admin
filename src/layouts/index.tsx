@@ -1,98 +1,116 @@
-import type { AppDispatch, RootState } from '@/stores'
-import { useToken } from '@/hooks/useToken'
-import { useCallback, useEffect, useState } from 'react'
-import { useNavigate, useOutlet } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux'
-import { getPermissions } from '@/servers/permissions'
-import { permissionsToArray } from '@/utils/permissions'
-import { setPermissions, setUserInfo } from '@/stores/user'
-import { toggleCollapsed, togglePhone } from '@/stores/menu'
-import { useLocation } from 'react-router-dom'
-import { useDebounceFn } from 'ahooks'
-import { Icon } from '@iconify/react'
-import { Skeleton } from 'antd'
-import Menu from './components/Menu'
-import Header from './components/Header'
-import Tabs from './components/Tabs'
-import Forbidden from '@/pages/403'
-import KeepAlive from 'react-activation'
-import styles from './index.module.less'
+import type { AppDispatch } from '@/stores';
+import { useToken } from '@/hooks/useToken';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useOutlet } from 'react-router-dom';
+import { Skeleton, message } from 'antd';
+import { Icon } from '@iconify/react';
+import { useDebounceFn } from 'ahooks';
+import { useDispatch } from 'react-redux';
+import { useLocation } from 'react-router-dom';
+import { versionCheck } from './utils/helper';
+import { getPermissions } from '@/servers/permissions';
+import { useCommonStore } from '@/hooks/useCommonStore';
+import { setPermissions, setUserInfo } from '@/stores/user';
+import { setMenuList, toggleCollapsed, togglePhone } from '@/stores/menu';
+import { getMenuList } from '@/servers/system/menu';
+import Menu from './components/Menu';
+import Header from './components/Header';
+import Tabs from './components/Tabs';
+import Forbidden from '@/pages/403';
+import KeepAlive from 'react-activation';
+import styles from './index.module.less';
 
 function Layout() {
-  const dispatch: AppDispatch = useDispatch()
-  const navigate = useNavigate()
-  const [getToken] = useToken()
-  const { pathname, search } = useLocation()
-  const uri = pathname + search
-  const token = getToken()
-  const outlet = useOutlet()
-  const [isLoading, setLoading] = useState(true)
+  const dispatch: AppDispatch = useDispatch();
+  const navigate = useNavigate();
+  const [getToken] = useToken();
+  const { pathname, search } = useLocation();
+  const uri = pathname + search;
+  const token = getToken();
+  const outlet = useOutlet();
+  const [isLoading, setLoading] = useState(true);
+  const [messageApi, contextHolder] = message.useMessage();
 
-  // 权限
-  const permissions = useSelector((state: RootState) => state.user.permissions)
-  // 用户ID
-  const userId = useSelector((state: RootState) => state.user.userInfo.id)
-  // 是否窗口最大化
-  const isMaximize = useSelector((state: RootState) => state.tabs.isMaximize)
-  // 菜单是否收缩
-  const isCollapsed = useSelector((state: RootState) => state.menu.isCollapsed)
-  // 是否手机端
-  const isPhone = useSelector((state: RootState) => state.menu.isPhone)
-  // 是否重新加载
-  const isRefresh = useSelector((state: RootState) => state.public.isRefresh)
+  const {
+    permissions,
+    userId,
+    isMaximize,
+    isCollapsed,
+    isPhone,
+    isRefresh
+  } = useCommonStore();
 
   /** 获取用户信息和权限 */
   const getUserInfo = useCallback(async () => {
     try {
-      setLoading(true)
-      const { data } = await getPermissions({ refresh_cache: false })
-      if (data) {
-        const { data: { user, permissions } } = data
-        const newPermissions = permissionsToArray(permissions)
-        dispatch(setUserInfo(user))
-        dispatch(setPermissions(newPermissions))
-      }
+      setLoading(true);
+      const { code, data } = await getPermissions({ refresh_cache: false });
+      if (Number(code) !== 200) return;
+      const { user, permissions } = data;
+      dispatch(setUserInfo(user));
+      dispatch(setPermissions(permissions));
     } catch(err) {
-      console.error('获取用户数据失败:', err)
-      setPermissions([])
+      console.error('获取用户数据失败:', err);
+      setPermissions([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
+
+  /** 获取菜单数据 */
+  const getMenuData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { code, data } = await getMenuList();
+      if (Number(code) !== 200) return;
+      dispatch(setMenuList(data || []));
+    } finally {
+      setLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     // 如果没有token，则返回登录页
     if (!token) {
-      navigate('/login')
+      navigate('/login');
     }
 
     // 当用户信息缓存不存在时则重新获取
     if (token && !userId) {
-      getUserInfo()
+      getUserInfo();
+      getMenuData();
     }
-  }, [getUserInfo, navigate, token, userId])
+  }, [getUserInfo, getMenuData, navigate, token, userId]);
+  
+  // 监测是否需要刷新
+  useEffect(() => {
+    versionCheck(messageApi);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   /** 判断是否是手机端 */
   const handleIsPhone = useDebounceFn(() => {
-    const isPhone = window.innerWidth <= 768
+    const isPhone = window.innerWidth <= 768;
     // 手机首次进来收缩菜单
-    if (isPhone) dispatch(toggleCollapsed(true))
-    dispatch(togglePhone(isPhone))
-  }, { wait: 500 })
+    if (isPhone) dispatch(toggleCollapsed(true));
+    dispatch(togglePhone(isPhone));
+  }, { wait: 500 });
 
   // 监听是否是手机端
   useEffect(() => {
-    window.addEventListener('resize', handleIsPhone.run())
+    window.addEventListener('resize', handleIsPhone.run());
 
     return () => {
-      window.removeEventListener('resize', handleIsPhone.run())
-    }
+      window.removeEventListener('resize', handleIsPhone.run());
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
 
   return (
     <div id="layout">
+      { contextHolder }
       <Menu />
       <div className={styles.layout_right}>
         <div
@@ -117,7 +135,7 @@ function Layout() {
             ${styles.con}
             ${isMaximize ? styles.conMaximize : ''}
             ${isCollapsed ? styles.conCloseMenu : ''}
-            ${isPhone ? `!left-0` : ''}
+            ${isPhone ? `!left-0 !w-full` : ''}
           `}
         >
           {
@@ -159,7 +177,7 @@ function Layout() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default Layout
+export default Layout;

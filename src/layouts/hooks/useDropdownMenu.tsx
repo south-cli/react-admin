@@ -1,22 +1,23 @@
-import type { MenuProps } from 'antd'
-import type { AppDispatch, RootState } from '@/stores'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux'
+import type { MenuProps } from 'antd';
+import type { AppDispatch } from '@/stores';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
   closeLeft,
   closeOther,
   closeRight,
   closeTabs,
   setNav
-} from '@/stores/tabs'
+} from '@/stores/tabs';
 import {
   RedoOutlined,
   CloseOutlined,
   VerticalAlignTopOutlined,
   VerticalAlignMiddleOutlined
-} from '@ant-design/icons'
-import { defaultMenus } from '@/menus'
-import { getMenuByKey } from '@/menus/utils/helper'
+} from '@ant-design/icons';
+import { getMenuByKey } from '@/menus/utils/helper';
+import { useCommonStore } from '@/hooks/useCommonStore';
 
 enum ITabEnums {
   REFRESH = 'refresh', // 重新加载
@@ -26,116 +27,116 @@ enum ITabEnums {
   CLOSE_RIGHT = 'close_right' // 关闭右侧
 }
 
-interface IProps {
+interface Props {
   activeKey: string;
   onOpenChange?: (open: boolean) => void;
   handleRefresh: (activeKey: string) => void;
 }
 
-export function useDropdownMenu(props: IProps) {
-  const { activeKey, onOpenChange, handleRefresh } = props
-  const { pathname } = useLocation()
-  const navigate = useNavigate()
-  const dispatch: AppDispatch = useDispatch()
-  const tabs = useSelector((state: RootState) => state.tabs.tabs)
-  const permissions = useSelector((state: RootState) => state.user.permissions)
+export function useDropdownMenu(props: Props) {
+  const { t } = useTranslation();
+  const { activeKey, onOpenChange, handleRefresh } = props;
+  const { pathname } = useLocation();
+  const { tabs, permissions, menuList } = useCommonStore();
+  const navigate = useNavigate();
+  const dispatch: AppDispatch = useDispatch();
 
   // 菜单项
   const items: (key?: string) => MenuProps['items'] = (key = activeKey) => {
-    const index = tabs.findIndex(item => item.key === key)
+    const index = tabs.findIndex(item => item.key === key);
     return [
       {
         key: ITabEnums.REFRESH,
-        label: '重新加载',
+        label: t('public.reload'),
         disabled: key !== pathname,
         icon: <RedoOutlined className="mr-5px transform rotate-270" />
       },
       {
         key: ITabEnums.CLOSE_CURRENT,
-        label: '关闭标签',
+        label: t('public.closeTab'),
         disabled: tabs.length <= 1,
         icon: <CloseOutlined className="mr-5px" />
       },
       {
         key: ITabEnums.CLOSE_OTHER,
-        label: '关闭其他',
+        label: t('public.closeOther'),
         disabled: tabs.length <= 1,
         icon: <VerticalAlignMiddleOutlined className="mr-5px transform rotate-90" />
       },
       {
         key: ITabEnums.CLOSE_LEFT,
-        label: '关闭左侧',
+        label: t('public.closeLeft'),
         disabled: index === 0,
         icon: <VerticalAlignTopOutlined className="mr-5px transform rotate-270" />
       },
       {
         key: ITabEnums.CLOSE_RIGHT,
-        label: '关闭右侧',
+        label: t('public.closeRight'),
         disabled: index === tabs.length - 1,
         icon: <VerticalAlignTopOutlined className="mr-5px transform rotate-90" />
       }
-    ]
-  }
+    ];
+  };
 
   /** 点击菜单 */
   const onClick = (type: string, key = activeKey) => {
     // 复原箭头
-    onOpenChange?.(false)
+    onOpenChange?.(false);
 
     switch (type) {
       // 重新加载
       case ITabEnums.REFRESH:
-        handleRefresh(key)
-        break
+        handleRefresh(key);
+        break;
 
       // 关闭当前
       case ITabEnums.CLOSE_CURRENT:
-        dispatch(closeTabs(key))
-        break
+        dispatch(closeTabs(key));
+        break;
 
       // 关闭其他
       case ITabEnums.CLOSE_OTHER:
-        dispatch(closeOther(key))
-        break
+        dispatch(closeOther(key));
+        break;
 
       // 关闭左侧
       case ITabEnums.CLOSE_LEFT:
-        dispatch(closeLeft(key))
+        dispatch(closeLeft(key));
         if (pathname !== key) {
           const menuByKeyProps = {
-            menus: defaultMenus,
+            menus: menuList,
             permissions,
             key
-          }
-          const newItems = getMenuByKey(menuByKeyProps)
+          };
+          const newItems = getMenuByKey(menuByKeyProps);
           if (newItems?.key) {
-            navigate(key)
-            dispatch(setNav(newItems.nav))
+            navigate(key);
+            dispatch(setNav(newItems.nav));
           }
         }
-        break
+        break;
 
       // 关闭右侧
       case ITabEnums.CLOSE_RIGHT:
-        dispatch(closeRight(key))
+        dispatch(closeRight(key));
         if (pathname !== key) {
           const menuByKeyProps = {
-            menus: defaultMenus,
+            menus: menuList,
             permissions,
             key
-          }
-          const newItems = getMenuByKey(menuByKeyProps)
+          };
+          const newItems = getMenuByKey(menuByKeyProps);
           if (newItems?.key) {
-            navigate(key)
-            dispatch(setNav(newItems.nav))
+            navigate(key);
+            dispatch(setNav(newItems.nav));
           }
         }
-        break
+        break;
 
       default:
-        break
+        break;
     }
-  }
+  };
 
-  return [items, onClick] as const
+  return [items, onClick] as const;
 }
