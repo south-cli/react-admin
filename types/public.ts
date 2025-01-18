@@ -1,9 +1,6 @@
-import { ItemType } from 'antd/es/menu/interface';
-import type { ColumnsType } from 'antd/lib/table';
-
-// 区间值
-type EventValue<T> = T | null
-export type RangeValue<T> = [EventValue<T>, EventValue<T>] | null
+import type { TableProps } from 'antd';
+import type { ColumnType } from 'antd/es/table';
+import type { ItemType } from 'antd/es/menu/interface';
 
 // 数组
 export type ArrayData = string[] | number[] | boolean[]
@@ -26,6 +23,7 @@ export interface PaginationData {
 // 侧边菜单
 export interface SideMenu extends Omit<ItemType, 'children' | 'label' | 'icon'> {
   label: string;
+  labelZh?: string;
   labelEn: string;
   key: string;
   icon?: React.ReactNode | string;
@@ -43,8 +41,25 @@ export interface PagePermission {
   [key: string]: boolean | undefined;
 }
 
+// 表格列表枚举
+export interface ColumnsEnum {
+  label: string;
+  value: unknown;
+  color?: string;
+}
+
 // 表格列数据
-export type TableColumn<T = object> = ColumnsType<T>
+export interface TableColumn<T = object> extends ColumnType<T> {
+  enum?: ColumnsEnum[] | Record<string, unknown>;
+  children?: TableColumn<T>[];
+  isKeepFixed?: boolean; // 手机端默认关闭fixed，该属性开启fixed
+}
+
+// 表格参数
+export interface BaseTableProps extends Omit<TableProps, 'columns' | 'rowKey'> {
+  rowKey?: string;
+  columns: TableColumn[];
+}
 
 // 表格操作
 export type TableOptions<T = object> = (value: unknown, record: T, index?: number) => JSX.Element

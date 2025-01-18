@@ -1,31 +1,31 @@
 import type { FormData } from '#/form';
 import type { PagePermission } from '#/public';
-import type { AppDispatch } from '@/stores';
 import { type FormInstance, message, Spin } from 'antd';
 import { createList } from './model';
 import { getUrlParam } from '@/utils/helper';
-import { useDispatch } from 'react-redux';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { checkPermission } from '@/utils/permissions';
-import { setRefreshPage } from '@/stores/public';
 import { useCommonStore } from '@/hooks/useCommonStore';
+import { useSingleTab } from '@/hooks/useSingleTab';
+import { usePublicStore, useTabsStore } from '@/stores';
+import { addComponent } from '@/components/Form/utils/componentMap';
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState
 } from 'react';
-import { closeTabGoNext } from '@/stores/tabs';
 import {
   getArticleById,
   createArticle,
   updateArticle,
 } from '@/servers/content/article';
-import BasicForm from '@/components/Form/BasicForm';
-import BasicContent from '@/components/Content/BasicContent';
+import BaseForm from '@/components/Form/BaseForm';
+import BaseContent from '@/components/Content/BaseContent';
 import SubmitBottom from '@/components/Bottom/SubmitBottom';
-import { useSingleTab } from '@/hooks/useSingleTab';
-import BasicCard from '@/components/Card/BasicCard';
+import BaseCard from '@/components/Card/BaseCard';
+import WangEditor from '@/components/WangEditor';
 
 interface RecordType {
   key: string;
@@ -53,15 +53,17 @@ const fatherPath = '/content/article';
 function Page() {
   const { t } = useTranslation();
   const { pathname, search } = useLocation();
+  const navigate = useNavigate();
   const uri = pathname + search;
   const id = getUrlParam(search, 'id');
   const createFormRef = useRef<FormInstance>(null);
-  const dispatch: AppDispatch = useDispatch();
   const [isLoading, setLoading] = useState(false);
   const [createId, setCreateId] = useState('');
   const [createData, setCreateData] = useState<FormData>(initCreate);
   const [messageApi, contextHolder] = message.useMessage();
   const { permissions } = useCommonStore();
+  const closeTabGoNext = useTabsStore(state => state.closeTabGoNext);
+  const setRefreshPage = usePublicStore(state => state.setRefreshPage);
   useSingleTab(fatherPath);
 
   // 权限前缀
@@ -76,6 +78,11 @@ function Page() {
   useEffect(() => {
     id ? handleUpdate(id) : handleCreate();
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 异步添加富文本组件
+  useLayoutEffect(() => {
+    addComponent('RichEditor', WangEditor);
   }, []);
 
   /** 处理新增 */
@@ -111,11 +118,12 @@ function Page() {
    */
   const goBack = (isRefresh?: boolean) => {
     createFormRef.current?.resetFields();
-    if (isRefresh) dispatch(setRefreshPage(true));
-    dispatch(closeTabGoNext({
+    if (isRefresh) setRefreshPage(true);
+    closeTabGoNext({
       key: uri,
-      nextPath: fatherPath
-    }));
+      nextPath: fatherPath,
+      navigate
+    });
   };
 
   /**
@@ -137,12 +145,12 @@ function Page() {
   };
 
   return (
-    <BasicContent isPermission={id ? pagePermission.update : pagePermission.create}>
+    <BaseContent isPermission={id ? pagePermission.update : pagePermission.create}>
       { contextHolder }
-      <BasicCard>
+      <BaseCard>
         <div className='mb-50px'>
           <Spin spinning={isLoading}>
-            <BasicForm
+            <BaseForm
               ref={createFormRef}
               list={createList(t)}
               data={createData}
@@ -151,14 +159,14 @@ function Page() {
             />
           </Spin>
         </div>
-      </BasicCard>
+      </BaseCard>
 
       <SubmitBottom
         isLoading={isLoading}
         goBack={() => goBack()}
         handleSubmit={handleSubmit}
       />
-    </BasicContent>
+    </BaseContent>
   );
 }
 

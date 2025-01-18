@@ -1,35 +1,32 @@
-import type { AppDispatch } from '@/stores';
 import { useToken } from '@/hooks/useToken';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useOutlet } from 'react-router-dom';
 import { Skeleton, message } from 'antd';
 import { Icon } from '@iconify/react';
-import { useDebounceFn } from 'ahooks';
-import { useDispatch } from 'react-redux';
+import { debounce } from 'lodash';
 import { useLocation } from 'react-router-dom';
 import { versionCheck } from './utils/helper';
 import { getPermissions } from '@/servers/permissions';
+import { useMenuStore, useUserStore } from '@/stores';
 import { useCommonStore } from '@/hooks/useCommonStore';
-import { setPermissions, setUserInfo } from '@/stores/user';
-import { setMenuList, toggleCollapsed, togglePhone } from '@/stores/menu';
 import { getMenuList } from '@/servers/system/menu';
 import Menu from './components/Menu';
 import Header from './components/Header';
 import Tabs from './components/Tabs';
 import Forbidden from '@/pages/403';
-import KeepAlive from 'react-activation';
+import KeepAlive from 'keepalive-for-react';
 import styles from './index.module.less';
 
 function Layout() {
-  const dispatch: AppDispatch = useDispatch();
   const navigate = useNavigate();
   const [getToken] = useToken();
   const { pathname, search } = useLocation();
-  const uri = pathname + search;
   const token = getToken();
   const outlet = useOutlet();
   const [isLoading, setLoading] = useState(true);
   const [messageApi, contextHolder] = message.useMessage();
+  const { setPermissions, setUserInfo } = useUserStore(state => state);
+  const { setMenuList, toggleCollapsed, togglePhone } = useMenuStore(state => state);
 
   const {
     permissions,
@@ -47,8 +44,8 @@ function Layout() {
       const { code, data } = await getPermissions({ refresh_cache: false });
       if (Number(code) !== 200) return;
       const { user, permissions } = data;
-      dispatch(setUserInfo(user));
-      dispatch(setPermissions(permissions));
+      setUserInfo(user);
+      setPermissions(permissions);
     } catch(err) {
       console.error('获取用户数据失败:', err);
       setPermissions([]);
@@ -64,7 +61,7 @@ function Layout() {
       setLoading(true);
       const { code, data } = await getMenuList();
       if (Number(code) !== 200) return;
-      dispatch(setMenuList(data || []));
+      setMenuList(data || []);
     } finally {
       setLoading(false);
     }
@@ -83,7 +80,7 @@ function Layout() {
       getMenuData();
     }
   }, [getUserInfo, getMenuData, navigate, token, userId]);
-  
+
   // 监测是否需要刷新
   useEffect(() => {
     versionCheck(messageApi);
@@ -91,22 +88,30 @@ function Layout() {
   }, [pathname]);
 
   /** 判断是否是手机端 */
-  const handleIsPhone = useDebounceFn(() => {
+  const handleIsPhone = debounce(() => {
     const isPhone = window.innerWidth <= 768;
     // 手机首次进来收缩菜单
-    if (isPhone) dispatch(toggleCollapsed(true));
-    dispatch(togglePhone(isPhone));
-  }, { wait: 500 });
+    if (isPhone) toggleCollapsed(true);
+    togglePhone(isPhone);
+  }, 500);
 
   // 监听是否是手机端
   useEffect(() => {
-    window.addEventListener('resize', handleIsPhone.run());
+    handleIsPhone();
+    window.addEventListener('resize', handleIsPhone);
 
     return () => {
-      window.removeEventListener('resize', handleIsPhone.run());
+      window.removeEventListener('resize', handleIsPhone);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /**
+   * 用于区分不同页面以进行缓存
+   */
+  const cacheKey = useMemo(() => {
+    return pathname + search;
+  }, [pathname, search]);
 
   return (
     <div id="layout">
@@ -119,8 +124,8 @@ function Layout() {
             border-bottom
             transition-all
             ${styles.header}
-            ${isCollapsed ? styles.headerCloseMenu : ''}
-            ${isMaximize ? styles.headerNone : ''}
+            ${isCollapsed ? styles['header-close-menu'] : ''}
+            ${isMaximize ? styles['header-none'] : ''}
             ${isPhone ? `!left-0 z-999` : ''}
           `}
         >
@@ -128,13 +133,13 @@ function Layout() {
           <Tabs />
         </div>
         <div
-          id="layoutContent"
+          id="layout-content"
           className={`
             overflow-auto
             transition-all
             ${styles.con}
-            ${isMaximize ? styles.conMaximize : ''}
-            ${isCollapsed ? styles.conCloseMenu : ''}
+            ${isMaximize ? styles['con-maximize'] : ''}
+            ${isCollapsed ? styles['con-close-menu'] : ''}
             ${isPhone ? `!left-0 !w-full` : ''}
           `}
         >
@@ -170,7 +175,11 @@ function Layout() {
           {
             permissions.length > 0 &&
             !isRefresh &&
-            <KeepAlive id={uri} name={uri}>
+            <KeepAlive
+              max={20}
+              strategy={'PRE'}
+              activeName={cacheKey}
+            >
               { outlet }
             </KeepAlive>
           }

@@ -1,11 +1,11 @@
 import type { TableColumn } from '#/public';
 import { useTranslation } from 'react-i18next';
-import BasicTable from '@/components/Table/BasicTable';
+import BaseTable from '@/components/Table/BaseTable';
 
 function VirtualTable() {
   const { t } = useTranslation();
 
-  const columns: TableColumn = [
+  const columns: TableColumn[] = [
     { title: 'ID', dataIndex: 'id', width: 200 },
     { title: t('public.name'), dataIndex: 'name', width: 200 },
     { title: t('system.phone'), dataIndex: 'phone', width: 200 },
@@ -24,7 +24,7 @@ function VirtualTable() {
   }
 
   return (
-    <BasicTable
+    <BaseTable
       isVirtual
       columns={columns}
       dataSource={data}

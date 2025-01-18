@@ -2,14 +2,16 @@ import type { FormData } from '#/form';
 import { useCallback, useEffect, useState } from 'react';
 import { getDataTrends } from '@/servers/dashboard';
 import { searchList } from './model';
-import { useUnactivate } from 'react-activation';
 import { useTranslation } from 'react-i18next';
-import BasicSearch from '@/components/Search/BasicSearch';
-import BasicContent from '@/components/Content/BasicContent';
+import { useEffectOnActive } from 'keepalive-for-react';
+import { checkPermission } from '@/utils/permissions';
+import { useCommonStore } from '@/hooks/useCommonStore';
+import BaseSearch from '@/components/Search/BaseSearch';
+import BaseContent from '@/components/Content/BaseContent';
 import Bar from './components/Bar';
 import Line from './components/Line';
 import Block from './components/Block';
-import BasicCard from '@/components/Card/BasicCard';
+import BaseCard from '@/components/Card/BaseCard';
 
 // 初始化搜索
 const initSearch = {
@@ -19,6 +21,8 @@ const initSearch = {
 function Dashboard() {
   const { t } = useTranslation();
   const [isLoading, setLoading] = useState(false);
+  const { permissions, isPhone } = useCommonStore();
+  const isPermission = checkPermission('/dashboard', permissions);
 
   /**
    * 搜索提交
@@ -41,32 +45,49 @@ function Dashboard() {
     handleSearch(initSearch);
   }, [handleSearch]);
 
-  useUnactivate(() => {
-    console.log('退出时执行');
-  });
+  useEffectOnActive(() => {
+    console.log('进入和退出时执行');
+
+    return () => {
+      console.log('退出时执行');
+    };
+  }, false, []);
+
+  useEffectOnActive(() => {
+    console.log('第二次进入和退出时执行');
+
+    return () => {
+      console.log('第二次退出时执行');
+    };
+  }, true, []);
 
   return (
-    <BasicContent isPermission={true}>
-      <BasicCard>
-        <BasicSearch
+    <BaseContent isPermission={isPermission}>
+      <BaseCard>
+        <BaseSearch
           list={searchList(t)}
           data={initSearch}
+          initSearch={initSearch}
           isLoading={isLoading}
           handleFinish={handleSearch}
         />
-      </BasicCard>
+      </BaseCard>
 
-      <BasicCard className='mt-10px'>
-        <div className='py-10px'>
+      <BaseCard className='mt-10px'>
+        <div className='pt-10px'>
           <Block />
         </div>
 
-        <div className='flex justify-between w-full'>
-          <Line />
-          <Bar />
+        <div className='flex flex-wrap justify-between w-full'>
+          <div className={`mb-10px ${ isPhone ? 'w-full' : 'w-49.5%' }`}>
+            <Line />
+          </div>
+          <div className={`mb-10px ${ isPhone ? 'w-full' : 'w-49.5%' }`}>
+            <Bar />
+          </div>
         </div>
-      </BasicCard>
-    </BasicContent>
+      </BaseCard>
+    </BaseContent>
   );
 }
 

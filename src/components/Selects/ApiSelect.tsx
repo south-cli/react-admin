@@ -1,9 +1,9 @@
-import type { ApiSelectProps } from '#/form';
+import type { ApiSelectProps } from './types';
 import type { DefaultOptionType } from 'antd/es/select';
 import { Select } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from 'react';
-import { MAX_TAG_COUNT } from '@/utils/config';
+import { MAX_TAG_COUNT } from './index';
 import Loading from './components/Loading';
 
 /**
@@ -60,10 +60,11 @@ function ApiSelect(props: ApiSelectProps) {
 
   return (
     <Select
-      allowClear={true}
+      allowClear
+      showSearch
       maxTagCount={MAX_TAG_COUNT}
       placeholder={t('public.inputPleaseSelect')}
-      optionFilterProp='label'
+      optionFilterProp={params?.fieldNames?.label || 'label'}
       {...params}
       loading={isLoading}
       options={options}

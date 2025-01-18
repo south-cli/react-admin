@@ -7,6 +7,7 @@ export default {
   create: '新增',
   edit: '编辑',
   delete: '删除',
+  batchDelete: '批量删除',
   inputPleaseEnter: '请输入',
   inputPleaseSelect: '请选择',
   createTitle: '新增{{title}}',
@@ -16,6 +17,8 @@ export default {
   confirmMessage: '确定要{{name}}吗',
   successfulOperation: '操作成功',
   successfullyDeleted: '删除成功',
+  checkAll: '全选',
+  checkAllWarning: '表格筛选必须勾选一个',
   fullScreen: '全屏',
   exitFullscreen: '退出全屏',
   themes: '主题模式',
@@ -61,4 +64,6 @@ export default {
   validateRange: '{{label}}必须大于{{min}}且小于{{max}}',
   createMethodWarning: '新增组件缺少对应方法',
   getPageWarning: '缺少获取页面方法',
+  tableSelectWarning: '请勾选表格数据',
+  menuSearchPlaceholder: '请输入菜单名称',
 };

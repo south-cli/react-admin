@@ -1,19 +1,15 @@
-import type { AppDispatch } from '@/stores';
-import { ThemeType, setThemeValue } from '@/stores/public';
+import { ThemeType, usePublicStore } from '@/stores/public';
 import { Tooltip } from 'antd';
 import { Icon } from '@iconify/react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { THEME_KEY } from '@/utils/config';
-import { useDispatch } from 'react-redux';
-import { useAliveController } from 'react-activation';
 
 function Theme() {
   const { t } = useTranslation();
-  const { clear, refresh, getCachingNodes } = useAliveController();
-  const dispatch: AppDispatch = useDispatch();
   const themeCache = (localStorage.getItem(THEME_KEY) || 'light') as ThemeType;
   const [theme, setTheme] = useState<ThemeType>(themeCache);
+  const setThemeValue = usePublicStore(state => state.setThemeValue);
 
   useEffect(() => {
     if (!themeCache) {
@@ -22,19 +18,9 @@ function Theme() {
     if (themeCache === 'dark') {
       document.body.className = 'theme-dark';
     }
-    dispatch(setThemeValue(themeCache === 'dark' ? 'dark' : 'light'));
+    setThemeValue(themeCache === 'dark' ? 'dark' : 'light');
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [themeCache]);
-
-  /** 刷新全部keepalive */
-  const refreshAllKeepalive = () => {
-    const cacheNodes = getCachingNodes();
-
-    for (let i = 0; i < cacheNodes?.length; i++) {
-      const { name } = cacheNodes[i];
-      if (name) refresh(name);
-    }
-  };
 
   /**
    * 处理更新
@@ -42,11 +28,8 @@ function Theme() {
    */
   const onChange = (type: ThemeType) => {
     localStorage.setItem(THEME_KEY, type);
-    dispatch(setThemeValue(type));
+    setThemeValue(type);
     setTheme(type);
-
-    clear();
-    refreshAllKeepalive();
 
     switch (type) {
       case 'dark':

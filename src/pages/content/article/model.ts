@@ -22,7 +22,7 @@ export const searchList = (t: TFunction): SearchList[] => [
  * 表格数据
  * @param optionRender - 渲染操作函数
  */
-export const tableColumns = (t: TFunction, optionRender: TableOptions<object>): TableColumn => {
+export const tableColumns = (t: TFunction, optionRender: TableOptions<object>): TableColumn[] => {
   return [
     {
       title: 'ID',
@@ -62,6 +62,7 @@ export const createList = (t: TFunction): FormList[] => [
     label: t('login.username'),
     name: 'username',
     rules: FORM_REQUIRED,
+    extra: '这是描述，这是描述，这是描述。',
     component: 'Input',
     componentProps: {
       style: {
@@ -75,7 +76,6 @@ export const createList = (t: TFunction): FormList[] => [
     rules: FORM_REQUIRED,
     component: 'Input',
     unit: '单位',
-    extra: '这是描述，这是描述，这是描述。',
     componentProps: {
       style: {
         width: '80%'
@@ -97,7 +97,7 @@ export const createList = (t: TFunction): FormList[] => [
   {
     label: t('public.content'),
     name: 'content',
-    component: 'Editor',
+    component: 'RichEditor',
     componentProps: {
       style: {
         width: '80%'

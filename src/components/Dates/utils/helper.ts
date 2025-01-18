@@ -1,7 +1,6 @@
-import type { FormData, FormList } from '#/form';
 import type { Dayjs } from 'dayjs';
-import type { RangeValue } from '#/public';
 import type { DatePickerProps } from 'antd';
+import type { FormData, FormList } from '#/form';
 import type { RangeValueType } from 'rc-picker/lib/PickerInput/RangePicker';
 import { DATE_FORMAT } from '@/utils/config';
 import dayjs from 'dayjs';
@@ -9,6 +8,10 @@ import dayjs from 'dayjs';
 /**
  * @description isDayjs必须使用dayjs.isDayjs形式，否则打包会失败
  */
+
+// 区间值
+type EventValue<T> = T | null
+export type RangeValue<T> = [EventValue<T>, EventValue<T>] | null
 
 /**
  * dayjs类型转字符串类型
@@ -123,7 +126,7 @@ export function filterDayjs(obj: FormData, list: FormList[]): object {
     if (
       (obj[key] as [Dayjs, Dayjs])?.length === 2 &&
       dayjs.isDayjs((obj[key] as [Dayjs, Dayjs])[0]) &&
-      dayjs.isDayjs((obj[key] as [Dayjs, Dayjs])[1]) 
+      dayjs.isDayjs((obj[key] as [Dayjs, Dayjs])[1])
     ) {
       const format = getListKeyParam(list, key);
       obj[key] = dayjsRang2StringRang(

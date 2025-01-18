@@ -1,6 +1,6 @@
 import type { FormData } from '#/form';
 import type { DataNode } from 'antd/es/tree';
-import type { Key } from 'antd/es/table/interface';
+import type { Key, TableRowSelection } from 'antd/es/table/interface';
 import type { PagePermission } from '#/public';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createList, searchList, tableColumns } from './model';
@@ -12,19 +12,20 @@ import { ADD_TITLE, EDIT_TITLE, INIT_PAGINATION } from '@/utils/config';
 import { UpdateBtn, DeleteBtn } from '@/components/Buttons';
 import { getPermission, savePermission } from '@/servers/system/menu';
 import {
+  batchDeleteUser,
   createUser,
   deleteUser,
   getUserById,
   getUserPage,
   updateUser
 } from '@/servers/system/user';
-import BasicContent from '@/components/Content/BasicContent';
-import BasicSearch from '@/components/Search/BasicSearch';
-import BasicModal from '@/components/Modal/BasicModal';
-import BasicForm from '@/components/Form/BasicForm';
-import BasicTable from '@/components/Table/BasicTable';
-import BasicPagination from '@/components/Pagination/BasicPagination';
-import BasicCard from '@/components/Card/BasicCard';
+import BaseContent from '@/components/Content/BaseContent';
+import BaseSearch from '@/components/Search/BaseSearch';
+import BaseModal from '@/components/Modal/BaseModal';
+import BaseForm from '@/components/Form/BaseForm';
+import BaseTable from '@/components/Table/BaseTable';
+import BasePagination from '@/components/Pagination/BasePagination';
+import BaseCard from '@/components/Card/BaseCard';
 import PermissionDrawer from './components/PermissionDrawer';
 
 // 当前行数据
@@ -59,6 +60,7 @@ function Page() {
   const [isPromiseVisible, setPromiseVisible] = useState(false);
   const [promiseCheckedKeys, setPromiseCheckedKeys] = useState<Key[]>([]);
   const [promiseTreeData, setPromiseTreeData] = useState<DataNode[]>([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([]);
 
   const { permissions } = useCommonStore();
 
@@ -222,6 +224,27 @@ function Page() {
     }
   };
 
+  /** 处理批量删除 */
+  const handleBatchDelete = async () => {
+    try {
+      if (!selectedRowKeys.length) {
+        return messageApi.warning({
+          content: t('public.tableSelectWarning'),
+          key: 'pleaseSelect',
+        });
+      }
+      setLoading(true);
+      const params = { ids: selectedRowKeys };
+      const { code, message } = await batchDeleteUser(params);
+      if (Number(code) === 200) {
+        messageApi.success(message || t('public.successfullyDeleted'));
+        getPage();
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   /**
    * 处理分页
    * @param page - 当前页数
@@ -231,6 +254,20 @@ function Page() {
     setPage(page);
     setPageSize(pageSize);
     setFetch(true);
+  };
+
+  /**
+   * 监听表格多选变化
+   * @param newSelectedRowKeys - 勾选值
+   */
+  const onSelectChange = (newSelectedRowKeys: Key[]) => {
+    setSelectedRowKeys(newSelectedRowKeys);
+  };
+
+  /** 表格多选  */
+  const rowSelection: TableRowSelection<object> = {
+    selectedRowKeys,
+    onChange: onSelectChange,
   };
 
   /**
@@ -269,54 +306,69 @@ function Page() {
     </>;
   }
 
+  /** 左侧渲染 */
+  const leftContentRender = (
+    <>
+      <DeleteBtn
+        isIcon
+        isLoading={isLoading}
+        name={t('public.batchDelete')}
+        handleDelete={handleBatchDelete}
+      />
+      <div className='ml-10px'>左侧demo</div>
+    </>
+  );
+
   return (
-    <BasicContent isPermission={pagePermission.page}>
+    <BaseContent isPermission={pagePermission.page}>
       { contextHolder }
-      <BasicCard>
-        <BasicSearch
+      <BaseCard>
+        <BaseSearch
           list={searchList(t)}
           data={searchData}
+          type='grid'
           isLoading={isLoading}
           handleFinish={onSearch}
         />
-      </BasicCard>
+      </BaseCard>
 
-      <BasicCard className='mt-10px'>
-        <BasicTable
+      <BaseCard className='mt-10px'>
+        <BaseTable
           isLoading={isLoading}
           isCreate={pagePermission.create}
           columns={columns}
           dataSource={tableData}
-          leftContent={<div>左侧demo</div>}
+          rowSelection={rowSelection}
+          leftContent={leftContentRender}
           rightContent={<div>右侧demo</div>}
           getPage={getPage}
           onCreate={onCreate}
         />
 
-        <BasicPagination
+        <BasePagination
           disabled={isLoading}
           current={page}
           pageSize={pageSize}
           total={total}
           onChange={onChangePagination}
         />
-      </BasicCard>
+      </BaseCard>
 
-      <BasicModal
+      <BaseModal
         title={createTitle}
         open={isCreateOpen}
         confirmLoading={isCreateLoading}
         onOk={createSubmit}
         onCancel={closeCreate}
       >
-        <BasicForm
+        <BaseForm
           ref={createFormRef}
           list={createList(t)}
           data={createData}
           labelCol={{ span: 6 }}
           handleFinish={handleCreate}
         />
-      </BasicModal>
+      </BaseModal>
 
       <PermissionDrawer
         isVisible={isPromiseVisible}
@@ -325,7 +377,7 @@ function Page() {
         onClose={closePermission}
         onSubmit={permissionSubmit}
       />
-    </BasicContent>
+    </BaseContent>
   );
 }
 

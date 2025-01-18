@@ -1,11 +1,14 @@
 import {
   type TableProps,
+  type CheckboxProps,
   Button,
   Popover,
   Divider,
   Checkbox,
+  message,
 } from 'antd';
 import { useEffect, useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { UnorderedListOutlined } from '@ant-design/icons';
 
 /**
@@ -25,9 +28,12 @@ interface Props {
 
 function FilterButton(props: Props) {
   const { columns, className, getTableChecks } = props;
+  const { t } = useTranslation();
   const [isOpen, setOpen] = useState(false);
   const [list, setList] = useState<CheckboxList[]>([]);
-  const [checkList, setCheckList] = useState<string[]>([]);
+  const [checkedList, setCheckedList] = useState<string[]>([]);
+  const checkAll = list.length === checkedList.length;
+  const indeterminate = checkedList.length > 0 && checkedList.length < list.length;
   const params: Partial<Props> = { ...props };
   delete params.getTableChecks;
 
@@ -63,7 +69,7 @@ function FilterButton(props: Props) {
     }
 
     setList(result);
-    setCheckList(currentOptions);
+    setCheckedList(currentOptions);
   };
 
   /**
@@ -71,22 +77,41 @@ function FilterButton(props: Props) {
    * @param checkedValue - 已选数据
    */
   const onChangeCheckbox = (checkedValue: string[]) => {
-    setCheckList(checkedValue);
+    setCheckedList(checkedValue);
   };
 
   /** 处理筛选 */
   const handleFilter = () => {
+    if (!checkedList?.length) {
+      return message.warning({
+        content: t('public.checkAllWarning'),
+        key: 'filter',
+      });
+    }
     handleClick();
-    getTableChecks(checkList);
+    getTableChecks(checkedList);
+  };
+
+  const onCheckAllChange: CheckboxProps['onChange'] = (e) => {
+    const checkedList = e.target.checked ? list.map(item => item.value) : [];
+    setCheckedList(checkedList);
   };
 
   // 渲染内容
   const content = () => {
     return (
       <div className='min-w-130px'>
+        <Checkbox
+          className='!px-12px'
+          indeterminate={indeterminate}
+          onChange={onCheckAllChange}
+          checked={checkAll}
+        >
+          { t('public.checkAll') }
+        </Checkbox>
         <Checkbox.Group
           className='flex flex-col !px-12px'
-          value={checkList}
+          value={checkedList}
           onChange={onChangeCheckbox}
         >
           {

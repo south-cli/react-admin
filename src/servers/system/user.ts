@@ -1,6 +1,6 @@
 import type { FormData } from '#/form';
 import type { PageServerResult, PaginationData } from '#/public';
-import { request } from '@/servers/request';
+import { request } from '@/utils/request';
 
 enum API {
   URL = '/authority/user'
@@ -49,3 +49,12 @@ export function updateUser(id: string, data: FormData) {
 export function deleteUser(id: string) {
   return request.delete(`${API.URL}/${id}`);
 }
+
+/**
+ * 批量删除
+ * @param data - 请求数据
+ */
+export function batchDeleteUser(data: FormData) {
+  return request.post(`${API.URL}/batchDelete`, data);
+}
+

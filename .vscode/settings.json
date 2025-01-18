@@ -34,9 +34,7 @@
     "camelcase",
     "parens",
     "paren",
-    "reduxjs",
     "Appstore",
-    "ahooks",
     "brotliSize",
     "wangeditor",
     "stylelint",
@@ -59,6 +57,8 @@
     "majesticons",
     "Unactivate",
     "languagedetector",
-    "locize"
+    "locize",
+    "zustand",
+    "wechat",
   ]
 }

@@ -1,16 +1,13 @@
 import type { MenuProps } from 'antd';
 import type { SideMenu } from '#/public';
-import type { AppDispatch } from '@/stores';
 import { useCallback, useEffect, useState } from 'react';
 import { Menu } from 'antd';
 import { Icon } from '@iconify/react';
 import { setTitle } from '@/utils/helper';
-import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { useCommonStore } from '@/hooks/useCommonStore';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { addTabs, setNav, setActiveKey } from '@/stores/tabs';
-import { setOpenKeys, setSelectedKeys, toggleCollapsed } from '@/stores/menu';
+import { useMenuStore, useTabsStore } from '@/stores';
 import {
   filterMenus,
   getFirstMenu,
@@ -27,11 +24,20 @@ function LayoutMenu() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { pathname } = useLocation();
-  const dispatch: AppDispatch = useDispatch();
   const [menus, setMenus] = useState<SideMenu[]>([]);
   // 获取当前语言
   const currentLanguage = i18n.language;
 
+  const {
+    addTabs,
+    setNav,
+    setActiveKey
+  } = useTabsStore(state => state);
+  const {
+    setOpenKeys,
+    setSelectedKeys,
+    toggleCollapsed
+  } = useMenuStore(state => state);
   const {
     isMaximize,
     isCollapsed,
@@ -45,11 +51,9 @@ function LayoutMenu() {
   // 处理默认展开
   useEffect(() => {
     const newOpenKey = getOpenMenuByRouter(pathname);
-    if (!isPhone && !isCollapsed) {
-      dispatch(setOpenKeys(newOpenKey));
-      dispatch(setSelectedKeys(pathname));
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    setOpenKeys(newOpenKey);
+    setSelectedKeys(pathname);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   /**
@@ -103,9 +107,9 @@ function LayoutMenu() {
     const menuByKeyProps = { menus, permissions, key: path };
     const newTab = getMenuByKey(menuByKeyProps);
     if (newTab) {
-      dispatch(setActiveKey(newTab.key));
-      dispatch(setNav(newTab.nav));
-      dispatch(addTabs(newTab));
+      setActiveKey(newTab.key);
+      setNav(newTab.nav);
+      addTabs(newTab);
     }
   };
 
@@ -158,7 +162,7 @@ function LayoutMenu() {
       }
     }
 
-    dispatch(setOpenKeys(newOpenKey));
+    setOpenKeys(newOpenKey);
   };
 
   /** 点击logo */
@@ -170,7 +174,7 @@ function LayoutMenu() {
 
   /** 隐藏菜单 */
   const hiddenMenu = () => {
-    dispatch(toggleCollapsed(true));
+    toggleCollapsed(true);
   };
 
   return (
@@ -181,8 +185,8 @@ function LayoutMenu() {
           overflow-auto
           z-2
           ${styles.menu}
-          ${isCollapsed ? styles.menuClose : ''}
-          ${isMaximize || (isPhone && isCollapsed) ? styles.menuNone : ''}
+          ${isCollapsed ? styles['menu-close'] : ''}
+          ${isMaximize || (isPhone && isCollapsed) ? styles['menu-none'] : ''}
           ${isPhone ? '!z-1002' : ''}
         `}
       >
@@ -219,13 +223,13 @@ function LayoutMenu() {
         </div>
 
         <Menu
-          id="layoutMenu"
+          id="layout-menu"
           className="z-1000"
           selectedKeys={[selectedKeys]}
           openKeys={openKeys}
           mode="inline"
           theme="dark"
-          inlineCollapsed={isCollapsed}
+          inlineCollapsed={isPhone ? false : isCollapsed}
           items={handleFilterMenus(menus)}
           onClick={onClick}
           onOpenChange={onOpenChange}

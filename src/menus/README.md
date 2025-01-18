@@ -19,10 +19,12 @@
 ```
 
 ### 静态菜单方法：
-如果需要使用静态菜单将useCommonStore中的menuList改为defaultMenus。
+如果需要静态菜单将/src/hooks/useCommonStore.ts中的useCommonStore中的menuList改为defaultMenus。
 ```js
 // src/hooks/useCommonStore.ts
 import { defaultMenus } from '@/menus';
+
+// const menuList = useMenuStore(state => state.menuList);
 // 菜单数据
 const menuList = defaultMenus;
 ```

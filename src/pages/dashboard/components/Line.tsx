@@ -58,7 +58,7 @@ function Line() {
       },
     ]
   };
-  
+
   const [echartsRef, init] = useEcharts(option);
 
   useEffect(() => {
@@ -67,9 +67,9 @@ function Line() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [echartsRef]);
-  
+
   return (
-    <div className='w-60% h-550px border border-gray-200 rounded-10px'>
+    <div className='h-550px border border-gray-200 rounded-10px'>
       <div ref={echartsRef} className='w-full h-full'></div>
     </div>
   );

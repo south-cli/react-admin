@@ -14,11 +14,11 @@ import type {
   TransferProps,
   FormItemProps,
 } from "antd";
-import type { FC, Key, ReactNode } from "react";
+import type { Key, ReactNode } from "react";
 import type { RangePickerProps } from 'antd/lib/date-picker';
 import type { DefaultOptionType } from 'antd/lib/select';
 import type { RuleObject } from 'antd/lib/form';
-import type { ServerResult } from "@/servers/request/types";
+import type { ServerResult } from "@south/request";
 import type { BusinessComponents } from '@/components/Business';
 import type { EditorProps } from '@/components/WangEditor';
 
@@ -61,7 +61,7 @@ type SliderComponents = 'Slider'
 type CustomizeComponents = 'Customize'
 
 // 富文本编辑器
-type EditorComponents = 'Editor'
+type EditorComponents = 'RichEditor'
 
 // 密码强度组件
 type PasswordStrength = 'PasswordStrength'
@@ -124,24 +124,43 @@ export type ComponentProps = InputProps |
                               ApiTreeSelectProps |
                               EditorProps
 
+// 组件参数
+export type RenderComponentProps = InputProps &
+                              InputNumberProps &
+                              SelectProps &
+                              TreeSelectProps &
+                              CheckboxProps &
+                              RadioProps &
+                              DatePickerProps &
+                              TimePickerProps &
+                              UploadProps &
+                              RateProps &
+                              SliderSingleProps &
+                              TimeRangePickerProps &
+                              TransferProps &
+                              RangePickerProps &
+                              ApiSelectProps &
+                              ApiTreeSelectProps &
+                              EditorProps
+
 // 表单规则
 export type FormRule = RuleObject & {
   trigger?: 'blur' | 'change' | ['change', 'blur'];
 }
 
 // 表单数据
-export interface FormList extends Omit<FormItemProps, 'labelCol' | 'wrapperCol'> {
+export interface FormList extends FormItemProps {
   name: string | string[]; // 表单域字段
   label: string; // 标签
   placeholder?: string; // 占位符
   hidden?: boolean; // 是否隐藏
-  unit?: string; // 单位
+  unit?: string; // 单位，无法和extra一起显示
   rules?: FormRule[]; // 规则
-  labelCol?: number; // label宽度
-  wrapperCol?: number; // 内容宽度
+  labelWidth?: number; // label宽度
+  wrapperWidth?: number; // 内容宽度
   component: ComponentType; // 组件
   componentProps?: ComponentProps; // 组件参数
-  render?: FC; // 自定义渲染
+  render?: (props: RenderComponentProps) => JSX.Element | JSX.Element[]; // 自定义渲染
 }
 
 // 搜索数据

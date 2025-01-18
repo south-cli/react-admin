@@ -1,6 +1,7 @@
 import type { TFunction } from 'i18next';
 import type { FormItemProps } from 'antd';
 import type { ComponentProps, ComponentType, FormList } from '#/form';
+import { cloneDeep } from 'lodash';
 import { DATE_FORMAT, TIME_FORMAT } from '@/utils/config';
 
 /**
@@ -10,8 +11,6 @@ import { DATE_FORMAT, TIME_FORMAT } from '@/utils/config';
 export function handleValuePropName(component: ComponentType): string {
   switch (component) {
     case 'Switch':
-    case 'Checkbox':
-    case 'CheckboxGroup':
       return 'checked';
 
     case 'Upload':
@@ -36,15 +35,18 @@ export function initCompProps(
     case 'Select':
       return {
         allowClear: true,
+        showSearch: true,
+        optionFilterProp: 'label',
         placeholder: t('public.inputPleaseSelect')
       };
 
-    // 输入框
-    case 'Input':
+    // 树形下拉框
+    case 'TreeSelect':
       return {
         allowClear: true,
-        placeholder: t('public.inputPleaseEnter'),
-        onPressEnter
+        showSearch: true,
+        treeNodeFilterProp: 'label',
+        placeholder: t('public.inputPleaseSelect')
       };
 
     // 数字框
@@ -93,7 +95,7 @@ export function initCompProps(
     default:
       return {
         allowClear: true,
-        placeholder: t('public.inputPleaseEnter')
+        placeholder: t('public.inputPleaseEnter'),
       };
   }
 }
@@ -103,8 +105,9 @@ export function initCompProps(
  * @param data - 表单数据
  */
 export const filterFormItem = (data: FormList): FormItemProps => {
-  const result = JSON.parse(JSON.stringify(data));
+  const result = cloneDeep(data);
   delete result.componentProps;
+  delete result.render;
 
   return result as FormItemProps;
 };

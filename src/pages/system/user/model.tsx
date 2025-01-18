@@ -36,7 +36,7 @@ export const searchList = (t: TFunction): SearchList[] => [
  * 表格数据
  * @param optionRender - 渲染操作函数
  */
- export const tableColumns = (t: TFunction, optionRender: TableOptions<object>): TableColumn => {
+ export const tableColumns = (t: TFunction, optionRender: TableOptions<object>): TableColumn[] => {
   return [
     {
       title: 'ID',
@@ -53,25 +53,41 @@ export const searchList = (t: TFunction): SearchList[] => [
     {
       title: t('public.name'),
       dataIndex: 'real_name',
+      width: 200
+    },
+    {
+      title: 'URL',
+      dataIndex: 'url',
       width: 400
     },
     {
       title: t('system.role'),
       dataIndex: 'roles_name',
-      width: 400
+      width: 200
     },
     {
       title: t('system.phone'),
       dataIndex: 'phone',
-      width: 400
+      width: 200
     },
     {
       title: t('system.state'),
       dataIndex: 'status',
       width: 200,
-      render: (value: boolean) => (
-        <span>{ value ? t('public.open') : t('public.close') }</span>
-      )
+      enum: [
+        { label: '启用', value: 1, color: 'green' },
+        { label: '禁用', value: 0, color: 'red' }
+      ]
+    },
+    {
+      title: t('system.module'),
+      dataIndex: 'module',
+      width: 200,
+      enum: {
+        user: '用户模块',
+        menu: '菜单模块',
+        role: '角色模块'
+      }
     },
     {
       title: t('public.operate'),

@@ -7,6 +7,7 @@ export default {
   create: 'Create',
   edit: 'Edit',
   delete: 'Delete',
+  batchDelete: 'Batch delete',
   inputPleaseEnter: 'Please enter',
   inputPleaseSelect: 'Please select',
   createTitle: 'Add {{title}}',
@@ -16,6 +17,8 @@ export default {
   confirmMessage: 'Are you sure you want to {{name}}?',
   successfulOperation: 'Successful operation',
   successfullyDeleted: 'Successfully deleted',
+  checkAll: 'Check all',
+  checkAllWarning: 'Table filter must check one',
   fullScreen: 'Full screen',
   exitFullscreen: 'Exit fullscreen',
   themes: 'Themes',
@@ -61,4 +64,6 @@ export default {
   validateRange: '{{label}} must be between {{min}} and {{max}}',
   createMethodWarning: 'The new component lacks a corresponding method',
   getPageWarning: 'Missing page acquisition method',
+  tableSelectWarning: 'Please select table data',
+  menuSearchPlaceholder: 'Please enter the menu name',
 };

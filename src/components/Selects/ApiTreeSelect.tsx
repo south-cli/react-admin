@@ -1,9 +1,9 @@
-import type { ApiTreeSelectProps } from '#/form';
 import type { TreeSelectProps } from 'antd';
+import type { ApiTreeSelectProps } from './types';
 import { TreeSelect } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useState } from 'react';
-import { MAX_TAG_COUNT } from '@/utils/config';
+import { MAX_TAG_COUNT } from './index';
 import Loading from './components/Loading';
 
 /**
@@ -60,8 +60,10 @@ function ApiTreeSelect(props: ApiTreeSelectProps) {
 
   return (
     <TreeSelect
-      allowClear={true}
+      allowClear
+      showSearch
       maxTagCount={MAX_TAG_COUNT}
+      treeNodeFilterProp={params?.fieldNames?.label || 'label'}
       placeholder={t('public.inputPleaseSelect')}
       {...params}
       loading={isLoading}

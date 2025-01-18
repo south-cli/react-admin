@@ -1,5 +1,9 @@
+import {
+  setLocalInfo,
+  getLocalInfo,
+  removeLocalInfo,
+} from '@south/utils';
 import { TOKEN } from '@/utils/config';
-import { setLocalInfo, getLocalInfo, removeLocalInfo } from '@/utils/local';
 
 /**
  * token存取方法
